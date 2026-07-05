@@ -1,0 +1,133 @@
+{
+  "symbol": "BTC/USDT:USDT",
+  "candles": 86880,
+  "start_timestamp_ist": "2026-01-01 05:30:00",
+  "end_timestamp_ist": "2026-07-01 05:27:00",
+  "total_trades": 12,
+  "wins": 2,
+  "losses": 10,
+  "total_pnl_usd": -4673.187114825888,
+  "ending_capital": 5326.812885174111,
+  "trades": [
+    {
+      "side": "SELL",
+      "entry_timestamp_ist": "2026-01-01 19:00:00",
+      "exit_timestamp_ist": "2026-01-01 19:03:00",
+      "entry_price": 87904.6,
+      "exit_price": 87933.3,
+      "quantity": 3.0,
+      "pnl_usd": -1119.2999999998865,
+      "exit_reason": "SL_HIT_ON_CLOSE"
+    },
+    {
+      "side": "BUY",
+      "entry_timestamp_ist": "2026-01-10 18:36:00",
+      "exit_timestamp_ist": "2026-01-10 18:39:00",
+      "entry_price": 90704.5,
+      "exit_price": 90685.6,
+      "quantity": 2.664210000000034,
+      "pnl_usd": -654.5963969998068,
+      "exit_reason": "SL_HIT_ON_CLOSE"
+    },
+    {
+      "side": "SELL",
+      "entry_timestamp_ist": "2026-01-10 19:03:00",
+      "exit_timestamp_ist": "2026-01-10 19:06:00",
+      "entry_price": 90675.8,
+      "exit_price": 90688.7,
+      "quantity": 2.467831080900092,
+      "pnl_usd": -413.8552722667587,
+      "exit_reason": "SL_HIT_ON_CLOSE"
+    },
+    {
+      "side": "SELL",
+      "entry_timestamp_ist": "2026-01-17 19:30:00",
+      "exit_timestamp_ist": "2026-01-17 19:33:00",
+      "entry_price": 95311.5,
+      "exit_price": 95345.9,
+      "quantity": 2.343674499220064,
+      "pnl_usd": -1048.0912360510354,
+      "exit_reason": "SL_HIT_ON_CLOSE"
+    },
+    {
+      "side": "SELL",
+      "entry_timestamp_ist": "2026-01-24 18:45:00",
+      "exit_timestamp_ist": "2026-01-24 18:57:00",
+      "entry_price": 89491.0,
+      "exit_price": 89498.1,
+      "quantity": 2.0292471284047537,
+      "pnl_usd": -187.2995099519123,
+      "exit_reason": "SL_HIT_ON_CLOSE"
+    },
+    {
+      "side": "BUY",
+      "entry_timestamp_ist": "2026-01-24 19:15:00",
+      "exit_timestamp_ist": "2026-01-24 19:21:00",
+      "entry_price": 89496.9,
+      "exit_price": 89492.7,
+      "quantity": 1.97305727541918,
+      "pnl_usd": -107.72892723781257,
+      "exit_reason": "SL_HIT_ON_CLOSE"
+    },
+    {
+      "side": "SELL",
+      "entry_timestamp_ist": "2026-01-24 19:27:00",
+      "exit_timestamp_ist": "2026-01-24 19:30:00",
+      "entry_price": 89321.7,
+      "exit_price": 89267.3,
+      "quantity": 1.940738597247836,
+      "pnl_usd": 1372.4903359735226,
+      "exit_reason": "TARGET_HIT_ON_CLOSE"
+    },
+    {
+      "side": "SELL",
+      "entry_timestamp_ist": "2026-02-01 19:18:00",
+      "exit_timestamp_ist": "2026-02-01 19:21:00",
+      "entry_price": 78426.6,
+      "exit_price": 78289.8,
+      "quantity": 2.3524856980398927,
+      "pnl_usd": 4183.660565394234,
+      "exit_reason": "TARGET_HIT_ON_CLOSE"
+    },
+    {
+      "side": "SELL",
+      "entry_timestamp_ist": "2026-03-01 18:48:00",
+      "exit_timestamp_ist": "2026-03-01 18:51:00",
+      "entry_price": 66126.6,
+      "exit_price": 66213.0,
+      "quantity": 3.6075838676581626,
+      "pnl_usd": -4052.038200153376,
+      "exit_reason": "SL_HIT_ON_CLOSE"
+    },
+    {
+      "side": "SELL",
+      "entry_timestamp_ist": "2026-03-29 20:21:00",
+      "exit_timestamp_ist": "2026-03-29 20:24:00",
+      "entry_price": 66511.0,
+      "exit_price": 66524.9,
+      "quantity": 2.3919724076121502,
+      "pnl_usd": -432.2294140553346,
+      "exit_reason": "SL_HIT_ON_CLOSE"
+    },
+    {
+      "side": "SELL",
+      "entry_timestamp_ist": "2026-04-04 18:51:00",
+      "exit_timestamp_ist": "2026-04-04 18:57:00",
+      "entry_price": 67063.3,
+      "exit_price": 67076.7,
+      "quantity": 2.26230358339555,
+      "pnl_usd": -394.0932842273336,
+      "exit_reason": "SL_HIT_ON_CLOSE"
+    },
+    {
+      "side": "SELL",
+      "entry_timestamp_ist": "2026-05-17 19:00:00",
+      "exit_timestamp_ist": "2026-05-17 19:03:00",
+      "entry_price": 78212.3,
+      "exit_price": 78277.6,
+      "quantity": 2.14407559812735,
+      "pnl_usd": -1820.1057752503884,
+      "exit_reason": "SL_HIT_ON_CLOSE"
+    }
+  ]
+}

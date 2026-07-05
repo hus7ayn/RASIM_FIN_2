@@ -1,0 +1,12 @@
+{
+  "symbol": "BTC/USDT:USDT",
+  "candles": 7200,
+  "start_timestamp_ist": "2024-03-01 05:30:00",
+  "end_timestamp_ist": "2024-03-06 05:29:00",
+  "total_trades": 0,
+  "wins": 0,
+  "losses": 0,
+  "total_pnl_usd": 0,
+  "ending_capital": 10000.0,
+  "trades": []
+}

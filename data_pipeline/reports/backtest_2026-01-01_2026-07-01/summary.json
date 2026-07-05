@@ -1,0 +1,22 @@
+{
+  "symbol": "BTC/USDT:USDT",
+  "period_start": "2026-01-01 05:30:00",
+  "period_end": "2026-07-01 05:27:00",
+  "candles_analyzed": 86880,
+  "initial_capital": 10000.0,
+  "ending_capital": 10650.000000000317,
+  "total_pnl_usd": 650.0000000003163,
+  "total_trades": 10,
+  "wins": 3,
+  "losses": 7,
+  "win_rate_pct": 30.0,
+  "avg_win_usd": 450.0,
+  "avg_loss_usd": -100.0,
+  "mode": "auto_projected_admin_levels_intrabar_sl_target",
+  "exit_check": "intrabar_high_low",
+  "risk_per_trade_pct": 3.0,
+  "stop_loss_usd": 100,
+  "target_usd": 450,
+  "leverage": 13,
+  "data_csv": "/Users/hussain/RASIM_FIN_2/data_pipeline/data/BTCUSDTUSDT_1m_2026-01-01_2026-07-01.csv"
+}

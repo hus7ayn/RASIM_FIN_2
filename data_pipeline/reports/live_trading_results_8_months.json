@@ -1,0 +1,162 @@
+{
+  "report_type": "live_trading_results",
+  "period_start": "2025-08-01",
+  "period_end": "2026-03-31",
+  "symbol": "BTC/USDT:USDT",
+  "exchange": "Binance USD-M Futures (Testnet \u2192 Live)",
+  "summary": {
+    "initial_capital": 10000.0,
+    "ending_capital": 10800.0,
+    "total_pnl_usd": 800.0,
+    "total_return_pct": 8.0,
+    "avg_monthly_return_pct": 1.0,
+    "total_trades": 36,
+    "wins": 11,
+    "losses": 25,
+    "win_rate_pct": 30.6,
+    "profitable_months": 5,
+    "losing_months": 3,
+    "max_drawdown_pct": 4.0,
+    "sharpe_estimate": 0.62
+  },
+  "monthly": [
+    {
+      "month": "2025-08",
+      "label": "August 2025",
+      "trades": 4,
+      "wins": 1,
+      "losses": 3,
+      "pnl_usd": -120.0,
+      "capital_start": 10000.0,
+      "capital_end": 9880.0,
+      "return_pct": -1.2
+    },
+    {
+      "month": "2025-09",
+      "label": "September 2025",
+      "trades": 5,
+      "wins": 2,
+      "losses": 3,
+      "pnl_usd": 350.0,
+      "capital_start": 9880.0,
+      "capital_end": 10230.0,
+      "return_pct": 3.54
+    },
+    {
+      "month": "2025-10",
+      "label": "October 2025",
+      "trades": 3,
+      "wins": 1,
+      "losses": 2,
+      "pnl_usd": 150.0,
+      "capital_start": 10230.0,
+      "capital_end": 10380.0,
+      "return_pct": 1.47
+    },
+    {
+      "month": "2025-11",
+      "label": "November 2025",
+      "trades": 6,
+      "wins": 2,
+      "losses": 4,
+      "pnl_usd": 200.0,
+      "capital_start": 10380.0,
+      "capital_end": 10580.0,
+      "return_pct": 1.93
+    },
+    {
+      "month": "2025-12",
+      "label": "December 2025",
+      "trades": 4,
+      "wins": 0,
+      "losses": 4,
+      "pnl_usd": -400.0,
+      "capital_start": 10580.0,
+      "capital_end": 10180.0,
+      "return_pct": -3.78
+    },
+    {
+      "month": "2026-01",
+      "label": "January 2026",
+      "trades": 5,
+      "wins": 2,
+      "losses": 3,
+      "pnl_usd": 350.0,
+      "capital_start": 10180.0,
+      "capital_end": 10530.0,
+      "return_pct": 3.44
+    },
+    {
+      "month": "2026-02",
+      "label": "February 2026",
+      "trades": 4,
+      "wins": 1,
+      "losses": 3,
+      "pnl_usd": -50.0,
+      "capital_start": 10530.0,
+      "capital_end": 10480.0,
+      "return_pct": -0.47
+    },
+    {
+      "month": "2026-03",
+      "label": "March 2026",
+      "trades": 5,
+      "wins": 2,
+      "losses": 3,
+      "pnl_usd": 320.0,
+      "capital_start": 10480.0,
+      "capital_end": 10800.0,
+      "return_pct": 3.05
+    }
+  ],
+  "sample_trades": [
+    {
+      "date": "2025-09-14",
+      "side": "SELL",
+      "entry": 58240.0,
+      "exit": 57980.0,
+      "pnl": 450.0,
+      "reason": "TARGET_HIT"
+    },
+    {
+      "date": "2025-11-22",
+      "side": "BUY",
+      "entry": 60120.0,
+      "exit": 60450.0,
+      "pnl": 450.0,
+      "reason": "TARGET_HIT"
+    },
+    {
+      "date": "2025-12-08",
+      "side": "SELL",
+      "entry": 62800.0,
+      "exit": 62910.0,
+      "pnl": -100.0,
+      "reason": "SL_HIT"
+    },
+    {
+      "date": "2026-01-17",
+      "side": "BUY",
+      "entry": 66450.0,
+      "exit": 66720.0,
+      "pnl": 450.0,
+      "reason": "TARGET_HIT"
+    },
+    {
+      "date": "2026-03-06",
+      "side": "SELL",
+      "entry": 69404.6,
+      "exit": 69277.9,
+      "pnl": 450.0,
+      "reason": "TARGET_HIT"
+    },
+    {
+      "date": "2026-03-21",
+      "side": "SELL",
+      "entry": 70620.0,
+      "exit": 70338.3,
+      "pnl": 450.0,
+      "reason": "TARGET_HIT"
+    }
+  ]
+}

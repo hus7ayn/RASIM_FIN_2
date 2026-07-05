@@ -1,0 +1,16 @@
+{
+  "total_rows": 7200,
+  "evaluated_rows_with_prev": 7199,
+  "time_allowed": 905,
+  "pattern_valid": 9,
+  "ema_break": 4,
+  "key_level_aligned_with_ema": 0,
+  "final_buy_or_sell_candidates": 0,
+  "final_buy_candidates": 0,
+  "final_sell_candidates": 0,
+  "candle_type_distribution": {
+    "RED": 1462,
+    "GREEN": 1366,
+    "DOJI": 2
+  }
+}

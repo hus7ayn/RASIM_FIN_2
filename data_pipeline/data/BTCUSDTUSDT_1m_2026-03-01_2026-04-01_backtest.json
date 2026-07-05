@@ -1,0 +1,453 @@
+{
+  "symbol": "BTC/USDT:USDT",
+  "candles": 44640,
+  "start_timestamp_ist": "2026-03-01 05:30:00",
+  "end_timestamp_ist": "2026-04-01 05:29:00",
+  "total_trades": 44,
+  "wins": 9,
+  "losses": 35,
+  "total_pnl_usd": -8883.676545743583,
+  "ending_capital": 1116.3234542564182,
+  "trades": [
+    {
+      "side": "BUY",
+      "entry_timestamp_ist": "2026-03-04 00:41:00",
+      "exit_timestamp_ist": "2026-03-04 00:42:00",
+      "entry_price": 68487.5,
+      "exit_price": 68482.7,
+      "quantity": 3.0,
+      "pnl_usd": -187.2000000001135,
+      "exit_reason": "SL_HIT_ON_CLOSE"
+    },
+    {
+      "side": "SELL",
+      "entry_timestamp_ist": "2026-03-06 19:25:00",
+      "exit_timestamp_ist": "2026-03-06 19:27:00",
+      "entry_price": 69404.6,
+      "exit_price": 69277.9,
+      "quantity": 2.943839999999966,
+      "pnl_usd": 4848.79886400039,
+      "exit_reason": "TARGET_HIT_ON_CLOSE"
+    },
+    {
+      "side": "SELL",
+      "entry_timestamp_ist": "2026-03-07 18:49:00",
+      "exit_timestamp_ist": "2026-03-07 18:50:00",
+      "entry_price": 67936.4,
+      "exit_price": 67961.2,
+      "quantity": 4.398479659200083,
+      "pnl_usd": -1418.0698421262732,
+      "exit_reason": "SL_HIT_ON_CLOSE"
+    },
+    {
+      "side": "BUY",
+      "entry_timestamp_ist": "2026-03-07 23:24:00",
+      "exit_timestamp_ist": "2026-03-07 23:25:00",
+      "entry_price": 67843.6,
+      "exit_price": 67829.4,
+      "quantity": 3.9730587065622007,
+      "pnl_usd": -733.4266372319835,
+      "exit_reason": "SL_HIT_ON_CLOSE"
+    },
+    {
+      "side": "SELL",
+      "entry_timestamp_ist": "2026-03-08 01:59:00",
+      "exit_timestamp_ist": "2026-03-08 02:00:00",
+      "entry_price": 67206.6,
+      "exit_price": 67244.0,
+      "quantity": 3.7530307153926055,
+      "pnl_usd": -1824.723533823601,
+      "exit_reason": "SL_HIT_ON_CLOSE"
+    },
+    {
+      "side": "SELL",
+      "entry_timestamp_ist": "2026-03-08 21:14:00",
+      "exit_timestamp_ist": "2026-03-08 21:15:00",
+      "entry_price": 67120.2,
+      "exit_price": 67152.3,
+      "quantity": 3.205613655245526,
+      "pnl_usd": -1337.7025783342006,
+      "exit_reason": "SL_HIT_ON_CLOSE"
+    },
+    {
+      "side": "SELL",
+      "entry_timestamp_ist": "2026-03-08 21:41:00",
+      "exit_timestamp_ist": "2026-03-08 21:42:00",
+      "entry_price": 67114.3,
+      "exit_price": 67099.9,
+      "quantity": 2.8043028817452655,
+      "pnl_usd": 524.9654994630321,
+      "exit_reason": "TARGET_HIT_ON_CLOSE"
+    },
+    {
+      "side": "BUY",
+      "entry_timestamp_ist": "2026-03-08 22:09:00",
+      "exit_timestamp_ist": "2026-03-08 22:10:00",
+      "entry_price": 66900.0,
+      "exit_price": 66897.4,
+      "quantity": 2.9617925315841758,
+      "pnl_usd": -100.10858756776926,
+      "exit_reason": "SL_HIT_ON_CLOSE"
+    },
+    {
+      "side": "SELL",
+      "entry_timestamp_ist": "2026-03-09 00:13:00",
+      "exit_timestamp_ist": "2026-03-09 00:14:00",
+      "entry_price": 66768.8,
+      "exit_price": 66781.9,
+      "quantity": 2.931759955313845,
+      "pnl_usd": -499.27872038961505,
+      "exit_reason": "SL_HIT_ON_CLOSE"
+    },
+    {
+      "side": "SELL",
+      "entry_timestamp_ist": "2026-03-09 00:19:00",
+      "exit_timestamp_ist": "2026-03-09 00:20:00",
+      "entry_price": 66721.6,
+      "exit_price": 66766.0,
+      "quantity": 2.7819763391969605,
+      "pnl_usd": -1605.7567429842752,
+      "exit_reason": "SL_HIT_ON_CLOSE"
+    },
+    {
+      "side": "SELL",
+      "entry_timestamp_ist": "2026-03-09 01:59:00",
+      "exit_timestamp_ist": "2026-03-09 02:00:00",
+      "entry_price": 67000.0,
+      "exit_price": 67147.3,
+      "quantity": 2.300249316301678,
+      "pnl_usd": -4404.747415786171,
+      "exit_reason": "SL_HIT_ON_CLOSE"
+    },
+    {
+      "side": "BUY",
+      "entry_timestamp_ist": "2026-03-11 21:40:00",
+      "exit_timestamp_ist": "2026-03-11 21:41:00",
+      "entry_price": 70403.4,
+      "exit_price": 70328.0,
+      "quantity": 0.9788250915658268,
+      "pnl_usd": -959.4443547527493,
+      "exit_reason": "SL_HIT_ON_CLOSE"
+    },
+    {
+      "side": "SELL",
+      "entry_timestamp_ist": "2026-03-13 23:31:00",
+      "exit_timestamp_ist": "2026-03-13 23:32:00",
+      "entry_price": 70996.9,
+      "exit_price": 71057.4,
+      "quantity": 0.6909917851400018,
+      "pnl_usd": -543.4650390126114,
+      "exit_reason": "SL_HIT_ON_CLOSE"
+    },
+    {
+      "side": "SELL",
+      "entry_timestamp_ist": "2026-03-14 02:50:00",
+      "exit_timestamp_ist": "2026-03-14 02:56:00",
+      "entry_price": 71350.4,
+      "exit_price": 71254.0,
+      "quantity": 0.5279522734362184,
+      "pnl_usd": 661.629789070229,
+      "exit_reason": "TARGET_HIT_ON_CLOSE"
+    },
+    {
+      "side": "BUY",
+      "entry_timestamp_ist": "2026-03-15 02:02:00",
+      "exit_timestamp_ist": "2026-03-15 02:03:00",
+      "entry_price": 70714.4,
+      "exit_price": 70699.9,
+      "quantity": 0.7264412101572871,
+      "pnl_usd": -136.93416811464863,
+      "exit_reason": "SL_HIT_ON_CLOSE"
+    },
+    {
+      "side": "BUY",
+      "entry_timestamp_ist": "2026-03-15 02:04:00",
+      "exit_timestamp_ist": "2026-03-15 02:07:00",
+      "entry_price": 70717.3,
+      "exit_price": 70705.2,
+      "quantity": 0.6853609597228926,
+      "pnl_usd": -107.80727896446285,
+      "exit_reason": "SL_HIT_ON_CLOSE"
+    },
+    {
+      "side": "BUY",
+      "entry_timestamp_ist": "2026-03-15 02:42:00",
+      "exit_timestamp_ist": "2026-03-15 02:43:00",
+      "entry_price": 70702.7,
+      "exit_price": 70631.8,
+      "quantity": 0.6530187760335536,
+      "pnl_usd": -601.8874058700769,
+      "exit_reason": "SL_HIT_ON_CLOSE"
+    },
+    {
+      "side": "BUY",
+      "entry_timestamp_ist": "2026-03-15 19:58:00",
+      "exit_timestamp_ist": "2026-03-15 20:00:00",
+      "entry_price": 71431.3,
+      "exit_price": 71376.3,
+      "quantity": 0.47245255427253063,
+      "pnl_usd": -337.8035763048594,
+      "exit_reason": "SL_HIT_ON_CLOSE"
+    },
+    {
+      "side": "BUY",
+      "entry_timestamp_ist": "2026-03-15 22:15:00",
+      "exit_timestamp_ist": "2026-03-15 22:16:00",
+      "entry_price": 71430.1,
+      "exit_price": 71408.6,
+      "quantity": 0.37111148138107275,
+      "pnl_usd": -103.72565904600984,
+      "exit_reason": "SL_HIT_ON_CLOSE"
+    },
+    {
+      "side": "BUY",
+      "entry_timestamp_ist": "2026-03-15 22:46:00",
+      "exit_timestamp_ist": "2026-03-15 22:47:00",
+      "entry_price": 71453.4,
+      "exit_price": 71422.4,
+      "quantity": 0.3399937836672698,
+      "pnl_usd": -137.01749481790972,
+      "exit_reason": "SL_HIT_ON_CLOSE"
+    },
+    {
+      "side": "BUY",
+      "entry_timestamp_ist": "2026-03-16 00:49:00",
+      "exit_timestamp_ist": "2026-03-16 01:56:00",
+      "entry_price": 71444.9,
+      "exit_price": 71414.0,
+      "quantity": 0.2988885352218969,
+      "pnl_usd": -120.06352459861336,
+      "exit_reason": "SL_HIT_ON_CLOSE"
+    },
+    {
+      "side": "SELL",
+      "entry_timestamp_ist": "2026-03-16 22:51:00",
+      "exit_timestamp_ist": "2026-03-16 22:55:00",
+      "entry_price": 73753.5,
+      "exit_price": 73794.0,
+      "quantity": 0.26286947784231285,
+      "pnl_usd": -138.4007800839777,
+      "exit_reason": "SL_HIT_ON_CLOSE"
+    },
+    {
+      "side": "SELL",
+      "entry_timestamp_ist": "2026-03-17 19:12:00",
+      "exit_timestamp_ist": "2026-03-17 19:16:00",
+      "entry_price": 73763.1,
+      "exit_price": 73826.8,
+      "quantity": 0.22134924381711957,
+      "pnl_usd": -183.29930880494834,
+      "exit_reason": "SL_HIT_ON_CLOSE"
+    },
+    {
+      "side": "BUY",
+      "entry_timestamp_ist": "2026-03-19 23:45:00",
+      "exit_timestamp_ist": "2026-03-19 23:47:00",
+      "entry_price": 69872.4,
+      "exit_price": 69799.6,
+      "quantity": 0.16635945117563505,
+      "pnl_usd": -157.44258459259584,
+      "exit_reason": "SL_HIT_ON_CLOSE"
+    },
+    {
+      "side": "SELL",
+      "entry_timestamp_ist": "2026-03-20 19:20:00",
+      "exit_timestamp_ist": "2026-03-20 19:30:00",
+      "entry_price": 70070.6,
+      "exit_price": 69750.6,
+      "quantity": 0.1191266757978563,
+      "pnl_usd": 495.5669713190822,
+      "exit_reason": "TARGET_HIT_ON_CLOSE"
+    },
+    {
+      "side": "SELL",
+      "entry_timestamp_ist": "2026-03-21 02:35:00",
+      "exit_timestamp_ist": "2026-03-21 02:36:00",
+      "entry_price": 69962.0,
+      "exit_price": 69995.1,
+      "quantity": 0.267796767193581,
+      "pnl_usd": -115.23294892341815,
+      "exit_reason": "SL_HIT_ON_CLOSE"
+    },
+    {
+      "side": "SELL",
+      "entry_timestamp_ist": "2026-03-21 02:37:00",
+      "exit_timestamp_ist": "2026-03-21 02:43:00",
+      "entry_price": 69970.0,
+      "exit_price": 70082.3,
+      "quantity": 0.23322688251655552,
+      "pnl_usd": -340.4879257859282,
+      "exit_reason": "SL_HIT_ON_CLOSE"
+    },
+    {
+      "side": "SELL",
+      "entry_timestamp_ist": "2026-03-21 21:24:00",
+      "exit_timestamp_ist": "2026-03-21 22:10:00",
+      "entry_price": 70620.0,
+      "exit_price": 70338.3,
+      "quantity": 0.13108050478077707,
+      "pnl_usd": 480.02991655767875,
+      "exit_reason": "TARGET_HIT_ON_CLOSE"
+    },
+    {
+      "side": "BUY",
+      "entry_timestamp_ist": "2026-03-21 22:34:00",
+      "exit_timestamp_ist": "2026-03-21 22:35:00",
+      "entry_price": 70334.2,
+      "exit_price": 70298.6,
+      "quantity": 0.2750894797480807,
+      "pnl_usd": -127.31141122738052,
+      "exit_reason": "SL_HIT_ON_CLOSE"
+    },
+    {
+      "side": "BUY",
+      "entry_timestamp_ist": "2026-03-21 22:46:00",
+      "exit_timestamp_ist": "2026-03-21 23:57:00",
+      "entry_price": 70251.8,
+      "exit_price": 70400.1,
+      "quantity": 0.23689605637986652,
+      "pnl_usd": 456.71190709475366,
+      "exit_reason": "TARGET_HIT_ON_CLOSE"
+    },
+    {
+      "side": "BUY",
+      "entry_timestamp_ist": "2026-03-22 00:47:00",
+      "exit_timestamp_ist": "2026-03-22 01:02:00",
+      "entry_price": 70389.8,
+      "exit_price": 70338.0,
+      "quantity": 0.3739096285082926,
+      "pnl_usd": -251.7907438374984,
+      "exit_reason": "SL_HIT_ON_CLOSE"
+    },
+    {
+      "side": "BUY",
+      "entry_timestamp_ist": "2026-03-22 03:18:00",
+      "exit_timestamp_ist": "2026-03-22 03:19:00",
+      "entry_price": 70334.5,
+      "exit_price": 70301.7,
+      "quantity": 0.29837240535704307,
+      "pnl_usd": -127.22599364425446,
+      "exit_reason": "SL_HIT_ON_CLOSE"
+    },
+    {
+      "side": "SELL",
+      "entry_timestamp_ist": "2026-03-22 03:22:00",
+      "exit_timestamp_ist": "2026-03-22 03:23:00",
+      "entry_price": 70231.7,
+      "exit_price": 70273.4,
+      "quantity": 0.2602046072637667,
+      "pnl_usd": -141.05691759767808,
+      "exit_reason": "SL_HIT_ON_CLOSE"
+    },
+    {
+      "side": "SELL",
+      "entry_timestamp_ist": "2026-03-23 02:39:00",
+      "exit_timestamp_ist": "2026-03-23 02:46:00",
+      "entry_price": 67817.0,
+      "exit_price": 67612.3,
+      "quantity": 0.21788753198446328,
+      "pnl_usd": 579.820511363847,
+      "exit_reason": "TARGET_HIT_ON_CLOSE"
+    },
+    {
+      "side": "SELL",
+      "entry_timestamp_ist": "2026-03-26 00:25:00",
+      "exit_timestamp_ist": "2026-03-26 00:27:00",
+      "entry_price": 70709.8,
+      "exit_price": 70737.3,
+      "quantity": 0.39183368539361735,
+      "pnl_usd": -140.0805425282182,
+      "exit_reason": "SL_HIT_ON_CLOSE"
+    },
+    {
+      "side": "BUY",
+      "entry_timestamp_ist": "2026-03-26 03:12:00",
+      "exit_timestamp_ist": "2026-03-26 03:14:00",
+      "entry_price": 71070.2,
+      "exit_price": 71024.7,
+      "quantity": 0.3498095226351519,
+      "pnl_usd": -206.91233263869236,
+      "exit_reason": "SL_HIT_ON_CLOSE"
+    },
+    {
+      "side": "BUY",
+      "entry_timestamp_ist": "2026-03-27 02:05:00",
+      "exit_timestamp_ist": "2026-03-27 02:07:00",
+      "entry_price": 69188.3,
+      "exit_price": 69153.6,
+      "quantity": 0.2877358228435442,
+      "pnl_usd": -129.7976296847119,
+      "exit_reason": "SL_HIT_ON_CLOSE"
+    },
+    {
+      "side": "SELL",
+      "entry_timestamp_ist": "2026-03-28 18:35:00",
+      "exit_timestamp_ist": "2026-03-28 18:40:00",
+      "entry_price": 66413.5,
+      "exit_price": 66470.2,
+      "quantity": 0.24879653393813064,
+      "pnl_usd": -183.38792516578667,
+      "exit_reason": "SL_HIT_ON_CLOSE"
+    },
+    {
+      "side": "BUY",
+      "entry_timestamp_ist": "2026-03-28 22:52:00",
+      "exit_timestamp_ist": "2026-03-28 22:56:00",
+      "entry_price": 66826.2,
+      "exit_price": 66778.7,
+      "quantity": 0.19378015638839463,
+      "pnl_usd": -119.65924656983367,
+      "exit_reason": "SL_HIT_ON_CLOSE"
+    },
+    {
+      "side": "SELL",
+      "entry_timestamp_ist": "2026-03-29 02:18:00",
+      "exit_timestamp_ist": "2026-03-29 03:23:00",
+      "entry_price": 66893.2,
+      "exit_price": 66618.8,
+      "quantity": 0.15788238241744454,
+      "pnl_usd": 563.1980345594963,
+      "exit_reason": "TARGET_HIT_ON_CLOSE"
+    },
+    {
+      "side": "SELL",
+      "entry_timestamp_ist": "2026-03-30 00:54:00",
+      "exit_timestamp_ist": "2026-03-30 00:56:00",
+      "entry_price": 66376.2,
+      "exit_price": 66406.9,
+      "quantity": 0.3268417927852934,
+      "pnl_usd": -130.44255950059824,
+      "exit_reason": "SL_HIT_ON_CLOSE"
+    },
+    {
+      "side": "SELL",
+      "entry_timestamp_ist": "2026-03-30 03:23:00",
+      "exit_timestamp_ist": "2026-03-30 03:24:00",
+      "entry_price": 66620.4,
+      "exit_price": 66665.9,
+      "quantity": 0.28770902493511397,
+      "pnl_usd": -170.1798882491199,
+      "exit_reason": "SL_HIT_ON_CLOSE"
+    },
+    {
+      "side": "SELL",
+      "entry_timestamp_ist": "2026-03-31 00:19:00",
+      "exit_timestamp_ist": "2026-03-31 00:37:00",
+      "entry_price": 66609.3,
+      "exit_price": 66366.6,
+      "quantity": 0.236655058460378,
+      "pnl_usd": 746.6703749483296,
+      "exit_reason": "TARGET_HIT_ON_CLOSE"
+    },
+    {
+      "side": "BUY",
+      "entry_timestamp_ist": "2026-03-31 19:19:00",
+      "exit_timestamp_ist": "2026-03-31 19:20:00",
+      "entry_price": 67269.9,
+      "exit_price": 67199.9,
+      "quantity": 0.4606561709448769,
+      "pnl_usd": -419.197115559838,
+      "exit_reason": "SL_HIT_ON_CLOSE"
+    }
+  ]
+}

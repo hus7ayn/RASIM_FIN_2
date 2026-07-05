@@ -1,0 +1,16 @@
+{
+  "period_start": "2024-01-01 05:30:00",
+  "period_end": "2024-02-01 05:29:00",
+  "candles": 44640,
+  "initial_capital": 10000.0,
+  "ending_capital": 9657.227389511481,
+  "total_pnl_usd": -342.77261048851744,
+  "total_trades": 4,
+  "wins": 1,
+  "losses": 3,
+  "win_rate_pct": 25.0,
+  "key_levels_count": 25,
+  "key_levels_min": 38000,
+  "key_levels_max": 50000,
+  "mode": "strict_rules"
+}

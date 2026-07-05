@@ -1,0 +1,128 @@
+TRADING AGENT STRATEGY AND LOGIC (STRICT RULES)
+===============================================
+
+This trading agent is a deterministic, rule-based execution engine.
+It does not predict future candles and does not improvise.
+
+1) CORE ROLE
+------------
+The agent executes trades using only:
+- Admin key levels
+- 1-minute candle behavior
+- EMA(7) break condition
+
+If any required condition is not satisfied, the agent does not trade.
+
+2) TIME RULE
+------------
+Trading is allowed only between:
+- 18:30 IST and 21:30 IST
+
+Outside this window:
+- NO TRADE - CONDITIONS NOT MET
+
+3) RISK AND POSITION RULES
+--------------------------
+- Capital source: Admin-provided capital only
+- Risk per trade: 3% of current capital
+- Stop Loss: 100 USD (equivalent)
+- Target: 450 USD (equivalent)
+- Leverage: 13x (fixed)
+- Mode: Isolated (strategy assumption)
+- Quantity formula:
+  quantity = (0.03 * capital) / 100
+
+Only one active position is allowed at a time.
+
+4) TIMEFRAME AND EXECUTION MOMENT
+---------------------------------
+- Timeframe: 1-minute candles only
+- Entry timing: Only at candle close
+- Entry candle: the SECOND candle in valid 2-candle sequence
+
+No mid-candle entries are allowed.
+
+5) ENTRY CONDITIONS (ALL MUST BE TRUE)
+--------------------------------------
+A trade is executed only if all the following are true:
+
+A) LEVEL BREAK (MANDATORY)
+- Bullish level break:
+  - candle open < key level
+  - candle close > key level
+  - candle type must be GREEN
+
+- Bearish level break:
+  - candle open > key level
+  - candle close < key level
+  - candle type must be RED
+
+B) VALID 2-CANDLE PATTERN
+Allowed previous -> current combinations:
+- RED -> GREEN
+- GREEN -> RED
+- DOJI -> GREEN
+- DOJI -> RED
+
+C) EMA(7) BREAK (ON SAME CURRENT CANDLE)
+- Bullish EMA break:
+  - candle open < EMA(7)
+  - candle close > EMA(7)
+  - candle type must be GREEN
+
+- Bearish EMA break:
+  - candle open > EMA(7)
+  - candle close < EMA(7)
+  - candle type must be RED
+
+Level break direction and EMA break direction must match.
+
+6) CANDLE TYPE DEFINITIONS
+--------------------------
+GREEN candle:
+- open is near low
+- close is near high (>= 90% toward high)
+
+RED candle:
+- open is near high
+- close is near low (>= 90% toward low)
+
+DOJI candle:
+- open is near close (within defined 10-20% nearness threshold)
+- and open is near midpoint: (high + low) / 2
+
+HIGH_DOJI candle:
+- open is near close
+- and open is near upper-quarter point of range
+- and open lies in upper half of candle range
+
+7) EXIT LOGIC
+-------------
+After entry, on each candle close:
+- Compute close-based PnL with leverage
+- Exit if:
+  - PnL <= -100 USD  -> SL_HIT_ON_CLOSE
+  - PnL >= +450 USD  -> TARGET_HIT_ON_CLOSE
+- Else hold the position
+
+8) FINAL EXECUTION BEHAVIOR
+---------------------------
+If all required rules are true:
+- Execute BUY or SELL at close of second candle
+
+If any rule fails or data is unclear:
+- NO TRADE - CONDITIONS NOT MET
+
+9) OUTPUT FORMAT
+----------------
+When trade executes, output includes:
+- Direction: BUY / SELL
+- Entry Price
+- Stop Loss: 100 USD equivalent
+- Target: 450 USD equivalent
+- Quantity
+- Timestamp (IST)
+
+When no trade:
+- Output: NO TRADE - CONDITIONS NOT MET
+

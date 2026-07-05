@@ -1,0 +1,18 @@
+{
+  "symbol": "BTC/USDT:USDT",
+  "period_start": "2026-03-01 05:30:00",
+  "period_end": "2026-04-01 05:29:00",
+  "candles": 44640,
+  "initial_capital": 10000.0,
+  "ending_capital": 10115.05871986383,
+  "total_pnl_usd": 115.05871986383045,
+  "total_trades": 3,
+  "wins": 1,
+  "losses": 2,
+  "win_rate_pct": 33.33333333333333,
+  "key_levels_count": 25,
+  "key_levels_min": 64000,
+  "key_levels_max": 76000,
+  "mode": "strict_rules",
+  "data_csv": "/Users/hussain/RASIM_FIN_2/data_pipeline/data/BTCUSDTUSDT_1m_2026-03-01_2026-04-01.csv"
+}

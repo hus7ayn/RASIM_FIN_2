@@ -1,0 +1,154 @@
+{
+  "disclaimer": "Simulated illustrative data \u2014 not actual trading results",
+  "assumptions": {
+    "initial_capital": 10000.0,
+    "stop_loss_usd": 100.0,
+    "target_usd": 450.0,
+    "risk_fraction": 0.03,
+    "win_rate_assumption": 0.35,
+    "win_rate_horizon_mc": 0.25,
+    "trades_per_month_mean": 5.5
+  },
+  "eight_month_path": [
+    {
+      "month": "2025-08",
+      "trades": 5,
+      "wins": 2,
+      "losses": 3,
+      "pnl_usd": 600.0,
+      "capital_start": 10000.0,
+      "capital_end": 10600.0,
+      "return_pct": 6.0
+    },
+    {
+      "month": "2025-09",
+      "trades": 6,
+      "wins": 3,
+      "losses": 3,
+      "pnl_usd": 1050.0,
+      "capital_start": 10600.0,
+      "capital_end": 11650.0,
+      "return_pct": 9.91
+    },
+    {
+      "month": "2025-10",
+      "trades": 6,
+      "wins": 1,
+      "losses": 5,
+      "pnl_usd": -50.0,
+      "capital_start": 11650.0,
+      "capital_end": 11600.0,
+      "return_pct": -0.43
+    },
+    {
+      "month": "2025-11",
+      "trades": 5,
+      "wins": 4,
+      "losses": 1,
+      "pnl_usd": 1700.0,
+      "capital_start": 11600.0,
+      "capital_end": 13300.0,
+      "return_pct": 14.66
+    },
+    {
+      "month": "2025-12",
+      "trades": 4,
+      "wins": 1,
+      "losses": 3,
+      "pnl_usd": 150.0,
+      "capital_start": 13300.0,
+      "capital_end": 13450.0,
+      "return_pct": 1.13
+    },
+    {
+      "month": "2026-01",
+      "trades": 9,
+      "wins": 4,
+      "losses": 5,
+      "pnl_usd": 1300.0,
+      "capital_start": 13450.0,
+      "capital_end": 14750.0,
+      "return_pct": 9.67
+    },
+    {
+      "month": "2026-02",
+      "trades": 5,
+      "wins": 1,
+      "losses": 4,
+      "pnl_usd": 50.0,
+      "capital_start": 14750.0,
+      "capital_end": 14800.0,
+      "return_pct": 0.34
+    },
+    {
+      "month": "2026-03",
+      "trades": 9,
+      "wins": 4,
+      "losses": 5,
+      "pnl_usd": 1300.0,
+      "capital_start": 14800.0,
+      "capital_end": 16100.0,
+      "return_pct": 8.78
+    }
+  ],
+  "horizon_probabilities": {
+    "3": {
+      "horizon_months": 3,
+      "prob_profit": 0.68,
+      "prob_loss": 0.236,
+      "prob_breakeven": 0.084,
+      "median_return_pct": 5.5,
+      "p10_return_pct": -6.0,
+      "p90_return_pct": 19.0,
+      "median_ending_capital": 10550.0
+    },
+    "4": {
+      "horizon_months": 4,
+      "prob_profit": 0.715,
+      "prob_loss": 0.209,
+      "prob_breakeven": 0.076,
+      "median_return_pct": 7.5,
+      "p10_return_pct": -6.5,
+      "p90_return_pct": 23.0,
+      "median_ending_capital": 10750.0
+    },
+    "5": {
+      "horizon_months": 5,
+      "prob_profit": 0.755,
+      "prob_loss": 0.185,
+      "prob_breakeven": 0.059,
+      "median_return_pct": 9.5,
+      "p10_return_pct": -6.0,
+      "p90_return_pct": 26.5,
+      "median_ending_capital": 10950.0
+    },
+    "6": {
+      "horizon_months": 6,
+      "prob_profit": 0.778,
+      "prob_loss": 0.172,
+      "prob_breakeven": 0.05,
+      "median_return_pct": 11.5,
+      "p10_return_pct": -5.5,
+      "p90_return_pct": 30.0,
+      "median_ending_capital": 11150.0
+    },
+    "8": {
+      "horizon_months": 8,
+      "prob_profit": 0.823,
+      "prob_loss": 0.137,
+      "prob_breakeven": 0.04,
+      "median_return_pct": 15.5,
+      "p10_return_pct": -4.5,
+      "p90_return_pct": 37.0,
+      "median_ending_capital": 11550.0
+    }
+  },
+  "summary_8m": {
+    "starting_capital": 10000.0,
+    "ending_capital": 16100.0,
+    "total_return_pct": 61.0,
+    "total_trades": 49,
+    "total_wins": 20,
+    "total_losses": 29
+  }
+}
