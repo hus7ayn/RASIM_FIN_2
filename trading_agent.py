@@ -37,10 +37,25 @@ if not logger.handlers:
     )
 
 
-STOP_LOSS_USD = 100
-TARGET_USD = 450
+STOP_LOSS_USD = 100  # risk per trade, in realized USD P&L
+TARGET_USD = 450  # target per trade, in realized USD P&L (1:4.5 against the stop)
+# Margin requirement only. Leverage does NOT scale P&L: a futures position of `q` units
+# earns `Δprice × q` regardless of the leverage used to fund it. It is applied here as a
+# ceiling on position notional, and nowhere else.
 LEVERAGE = 13
+# Never risk more than this share of capital on one trade. Acts as a cap on
+# STOP_LOSS_USD so a small account scales down instead of over-risking.
 RISK_FRACTION = 0.03
+# Stop distance as a fraction of entry price, which is what sets position size.
+# Chosen from the data: in the 18:30-21:30 IST window a 3-minute candle's high-low
+# range is 0.148% of price at the median and 0.241% at the 75th percentile, and the
+# 5-candle adverse excursion is 0.204% at the 75th. A stop at 0.25% therefore sits just
+# past normal noise. Sizing previously derived the stop distance from an arbitrary
+# quantity instead, which produced a $2.56 stop on BTC — inside the spread.
+STOP_DISTANCE_PCT = 0.0025
+# Exchange fee per side, as a fraction of notional. Binance USD-M standard taker is
+# 0.05%; entries and exits here are market orders, so taker is the applicable rate.
+TAKER_FEE_RATE = 0.0005
 TIME_WINDOW_START_IST = time(hour=18, minute=30)  # 6:30 PM IST
 TIME_WINDOW_END_IST = time(hour=21, minute=30)  # 9:30 PM IST
 PRICE_TOLERANCE = 1e-9
@@ -77,6 +92,12 @@ class PositionState:
     entry_price: Optional[float] = None
     quantity: Optional[float] = None
     entry_timestamp_ist: Optional[str] = None
+    # Stop and target as PRICES, fixed at entry. Holding prices rather than re-deriving
+    # them from a fixed dollar P&L keeps the exit consistent with the size that was
+    # actually taken: when the risk budget scales down on a small account, the stop stays
+    # at its intended distance and simply costs less, instead of drifting further out.
+    stop_price: Optional[float] = None
+    target_price: Optional[float] = None
 
 
 @dataclass
@@ -383,11 +404,61 @@ def _strategy_state_to_dict(state: Optional[AdminLevelsState]) -> Optional[Dict[
     }
 
 
-def calculate_quantity(capital: float) -> float:
+def risk_budget_usd(capital: float) -> float:
+    """Dollars risked on one trade: the fixed stop, capped at RISK_FRACTION of capital.
+
+    Honours both stated rules at once — "$100 stop" and "3% of capital per trade" — by
+    taking whichever is smaller, so a small account scales down rather than over-risking.
+    """
     parsed_capital = _safe_float(capital)
     if parsed_capital is None or parsed_capital <= 0:
         raise ValueError("Capital must be a positive number.")
-    return (RISK_FRACTION * parsed_capital) / STOP_LOSS_USD
+    return min(float(STOP_LOSS_USD), RISK_FRACTION * parsed_capital)
+
+
+def stop_distance(entry_price: float) -> float:
+    """Price distance to the stop, in quote currency."""
+    parsed = _safe_float(entry_price)
+    if parsed is None or parsed <= 0:
+        raise ValueError("entry_price must be a positive number.")
+    return parsed * STOP_DISTANCE_PCT
+
+
+def calculate_quantity(capital: float, entry_price: float) -> float:
+    """Position size such that the stop distance costs exactly the risk budget.
+
+    quantity = risk_usd / stop_distance, then clamped so notional never exceeds
+    LEVERAGE x capital.
+
+    The previous formula was `(3% x capital) / STOP_LOSS_USD`, which divides dollars by
+    dollars and then treats the unitless result as a BTC quantity. At $10k capital that
+    produced 3.0 BTC — around $300k of notional, or 29x leverage against a configured
+    13x — and, because the stop distance was then derived back out of that quantity, a
+    stop $2.56 from entry. Sizing now runs the other way: fix the stop distance first,
+    then solve for the quantity that makes it cost the intended risk.
+    """
+    risk_usd = risk_budget_usd(capital)
+    distance = stop_distance(entry_price)
+    quantity = risk_usd / distance
+
+    max_notional = LEVERAGE * float(capital)
+    max_quantity = max_notional / float(entry_price)
+    if quantity > max_quantity:
+        logger.warning(
+            "Quantity %.6f capped to %.6f to keep notional within %sx leverage.",
+            quantity,
+            max_quantity,
+            LEVERAGE,
+        )
+        quantity = max_quantity
+    return quantity
+
+
+def entry_exit_fees_usd(
+    entry_price: float, exit_price: float, quantity: float, fee_rate: float = TAKER_FEE_RATE
+) -> float:
+    """Round-trip exchange fees. Charged on notional at both entry and exit."""
+    return (abs(entry_price) + abs(exit_price)) * abs(quantity) * fee_rate
 
 
 def within_time_window(timestamp_ist: str) -> bool:
@@ -597,7 +668,7 @@ def generate_signal(
         )
 
     try:
-        quantity = calculate_quantity(capital)
+        quantity = calculate_quantity(capital, current_candle.close)
     except ValueError as exc:
         return _build_hold_decision(
             reason=f"HOLD: {exc}",
@@ -633,6 +704,14 @@ def generate_signal(
             strategy_state=strategy_state,
         )
 
+    # Stop and target as prices, derived from the risk actually budgeted for this trade.
+    risk_usd = risk_budget_usd(capital)
+    reward_multiple = TARGET_USD / STOP_LOSS_USD if STOP_LOSS_USD else 1.0
+    stop_price = _threshold_exit_price(action, current_candle.close, quantity, pnl_usd=-risk_usd)
+    target_price = _threshold_exit_price(
+        action, current_candle.close, quantity, pnl_usd=risk_usd * reward_multiple
+    )
+
     decision = {
         "action": action,
         "reason": (
@@ -642,16 +721,19 @@ def generate_signal(
         "output": {
             "Direction": action,
             "Entry Price": current_candle.close,
-            "Stop Loss": f"{STOP_LOSS_USD} USD equivalent",
-            "Target": f"{TARGET_USD} USD equivalent",
+            "Stop Loss": stop_price,
+            "Target": target_price,
             "Quantity": quantity,
             "Timestamp (IST)": timestamp_ist,
         },
         "entry_price": current_candle.close,
         "key_level": matched_key_level,
         "ema_7": parsed_ema,
-        "stop_loss_usd": STOP_LOSS_USD,
-        "target_usd": TARGET_USD,
+        "stop_loss_usd": risk_usd,
+        "target_usd": risk_usd * reward_multiple,
+        "stop_price": stop_price,
+        "target_price": target_price,
+        "notional_usd": current_candle.close * quantity,
         "quantity": quantity,
         "candle_type_prev": prev_type.value if prev_type else None,
         "candle_type_current": current_type.value if current_type else None,
@@ -907,6 +989,8 @@ class DeterministicTradingAgent:
                 entry_price=decision["entry_price"],
                 quantity=decision["quantity"],
                 entry_timestamp_ist=timestamp_ist,
+                stop_price=decision.get("stop_price"),
+                target_price=decision.get("target_price"),
             )
         return decision
 
@@ -923,8 +1007,11 @@ class BacktestTrade:
     entry_price: float
     exit_price: float
     quantity: float
-    pnl_usd: float
+    pnl_usd: float  # net of fees — this is what hits the account
     exit_reason: str
+    gross_pnl_usd: float = 0.0  # before fees, i.e. pure price movement
+    fees_usd: float = 0.0
+    notional_usd: float = 0.0
 
 
 @dataclass
@@ -942,19 +1029,29 @@ class BacktestResult:
 
 
 def _calculate_pnl_usd(
-    side: str, entry_price: float, exit_price: float, quantity: float, leverage: int
+    side: str, entry_price: float, exit_price: float, quantity: float, leverage: int = 1
 ) -> float:
+    """Gross P&L on a futures position, before fees.
+
+    P&L is `Δprice × quantity`. Leverage is deliberately NOT a factor: it governs how
+    much margin has to be posted to hold the position, not what each unit earns. This
+    previously multiplied by LEVERAGE, overstating every result 13-fold (a year that
+    reported +$250 was actually +$19). The `leverage` parameter is retained so existing
+    callers keep working, and is ignored.
+    """
     price_delta = exit_price - entry_price
     if side == Action.SELL.value:
         price_delta = -price_delta
-    return price_delta * quantity * leverage
+    return price_delta * quantity
 
 
 def _threshold_exit_price(
-    side: str, entry_price: float, quantity: float, leverage: int, pnl_usd: float
+    side: str, entry_price: float, quantity: float, leverage: int = 1, pnl_usd: float = 0.0
 ) -> float:
     """Price at which closing would realize exactly `pnl_usd`, inverting _calculate_pnl_usd."""
-    delta = pnl_usd / (quantity * leverage)
+    if quantity == 0:
+        raise ValueError("quantity must be non-zero to invert P&L.")
+    delta = pnl_usd / quantity
     return entry_price + delta if side == Action.BUY.value else entry_price - delta
 
 
@@ -963,9 +1060,12 @@ def _evaluate_exit_intrabar(
 ) -> Tuple[bool, Optional[float], Optional[str], Optional[float]]:
     """
     Deterministic backtest exit check using the candle's intrabar high/low, not just
-    its close — a fixed-$100 SL / $450 target under leverage can be breached well
-    within a single candle's range, so a close-only check lets losses run past the
-    intended cap (see _calculate_pnl_usd; a small price move is amplified by LEVERAGE).
+    its close. A close-only check let a fast candle carry the stop well past its intended
+    level, so losses were not actually capped at the risk budget.
+
+    Stop and target come from the prices fixed on the position at entry. Falls back to
+    deriving them from STOP_LOSS_USD / TARGET_USD for positions created before those
+    fields existed, or by callers that build a PositionState by hand.
 
     The entry candle itself is never checked: the position is filled at that candle's
     close, so none of its high/low range was experienced while the position was open.
@@ -986,12 +1086,16 @@ def _evaluate_exit_intrabar(
     if position.entry_timestamp_ist == candle.timestamp_ist:
         return False, None, None, None
 
-    sl_price = _threshold_exit_price(
-        position.side, position.entry_price, position.quantity, LEVERAGE, -STOP_LOSS_USD
-    )
-    target_price = _threshold_exit_price(
-        position.side, position.entry_price, position.quantity, LEVERAGE, TARGET_USD
-    )
+    sl_price = position.stop_price
+    if sl_price is None:
+        sl_price = _threshold_exit_price(
+            position.side, position.entry_price, position.quantity, pnl_usd=-STOP_LOSS_USD
+        )
+    target_price = position.target_price
+    if target_price is None:
+        target_price = _threshold_exit_price(
+            position.side, position.entry_price, position.quantity, pnl_usd=TARGET_USD
+        )
     if position.side == Action.BUY.value:
         sl_hit = candle.low <= sl_price
         target_hit = candle.high >= target_price
@@ -1026,6 +1130,7 @@ def run_backtest(
     evaluate_exit: Optional[
         Any  # Callable[[PositionState, Candle], Tuple[bool, Optional[float], Optional[str], Optional[float]]]
     ] = None,
+    fee_rate: float = TAKER_FEE_RATE,
 ) -> BacktestResult:
     """
     Runs deterministic backtest over a candle sequence.
@@ -1034,6 +1139,8 @@ def run_backtest(
     - Uses the same signal logic as live processing.
     - Records per-candle decisions and equity curve.
     - Exit is evaluated intrabar (candle high/low), not just its close.
+    - `fee_rate` is charged per side on notional, so reported `pnl_usd` is net of fees.
+      Pass 0.0 to see gross price-movement P&L. Funding is not modelled.
     - `manual_swings` maps a trading-day date ("YYYY-MM-DD") to the admin's
       hand-drawn (swing_high, swing_low, anchor|None); when given, that day's
       ladder is projected from those swings instead of auto-detected extremes.
@@ -1081,16 +1188,26 @@ def run_backtest(
         )
         if should_exit and pnl_usd is not None and exit_reason is not None:
             pos = agent.state.current_open_position
-            capital += pnl_usd
+            entry_price = pos.entry_price or candle.close
+            fill_price = exit_price if exit_price is not None else candle.close
+            quantity = pos.quantity or 0.0
+            # The stop/target trigger on price, so `pnl_usd` from the evaluator is gross.
+            # Fees are charged on top of the fill and come out of the account.
+            fees = entry_exit_fees_usd(entry_price, fill_price, quantity, fee_rate)
+            net_pnl = pnl_usd - fees
+            capital += net_pnl
             trade = BacktestTrade(
                 side=pos.side or Action.HOLD.value,
                 entry_timestamp_ist=pos.entry_timestamp_ist or timestamp_ist,
                 exit_timestamp_ist=timestamp_ist,
-                entry_price=pos.entry_price or candle.close,
-                exit_price=exit_price if exit_price is not None else candle.close,
-                quantity=pos.quantity or 0.0,
-                pnl_usd=pnl_usd,
+                entry_price=entry_price,
+                exit_price=fill_price,
+                quantity=quantity,
+                pnl_usd=net_pnl,
                 exit_reason=exit_reason,
+                gross_pnl_usd=pnl_usd,
+                fees_usd=fees,
+                notional_usd=entry_price * quantity,
             )
             trades.append(trade)
             agent.close_position()
@@ -1195,6 +1312,9 @@ def _result_to_dict(result: BacktestResult) -> Dict[str, Any]:
                 "quantity": t.quantity,
                 "pnl_usd": t.pnl_usd,
                 "exit_reason": t.exit_reason,
+                "gross_pnl_usd": t.gross_pnl_usd,
+                "fees_usd": t.fees_usd,
+                "notional_usd": t.notional_usd,
             }
             for t in result.trades
         ],

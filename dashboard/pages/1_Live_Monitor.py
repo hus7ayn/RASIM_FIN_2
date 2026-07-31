@@ -20,6 +20,7 @@ from dashboard.position_manager import (
     preflight_check,
 )
 from dashboard.trade_log import current_open_trade
+from dashboard.ui import demo_badge
 from strategies import describe_strategy, list_strategies
 
 
@@ -171,9 +172,7 @@ def render_position_panel() -> None:
         return
 
     if trade.get("synthetic"):
-        st.error(
-            f"**⚠ {trade.get('disclaimer', 'SYNTHETIC DEMO POSITION - not a real position.')}**"
-        )
+        demo_badge("Illustrative position for interface demonstration — not a real position.")
 
     current_price = _last_price(symbol) or float(trade["entry_price"])
     remaining = float(trade["remaining_quantity"] or 0.0)

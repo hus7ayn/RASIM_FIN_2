@@ -83,10 +83,17 @@ def create_test_order(
     return order
 
 
-def _pnl_usd_to_price_distance(usd_value: float, quantity: float, leverage: int) -> float:
+def _pnl_usd_to_price_distance(usd_value: float, quantity: float, leverage: int = 1) -> float:
+    """Price move that produces `usd_value` of P&L on `quantity` units.
+
+    Leverage is not a factor — P&L is Δprice x quantity. This previously divided by
+    leverage as well, which put the live stop 13x closer to entry than intended (about
+    $2.56 on BTC, inside the spread and below the exchange's minimum stop distance).
+    The `leverage` parameter is kept for call compatibility and ignored.
+    """
     if quantity <= 0:
         raise ValueError("quantity must be > 0 for price distance conversion.")
-    return usd_value / (quantity * leverage)
+    return usd_value / quantity
 
 
 def _configure_symbol_risk(exchange: ccxt.binanceusdm, symbol: str) -> None:

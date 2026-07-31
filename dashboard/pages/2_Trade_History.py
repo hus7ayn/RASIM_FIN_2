@@ -11,6 +11,7 @@ if _REPO_ROOT not in sys.path:
     sys.path.insert(0, _REPO_ROOT)
 
 from dashboard.trade_log import OPEN_STATUSES, load_trade_log
+from dashboard.ui import demo_badge
 
 st.set_page_config(page_title="RASIM Trade History", layout="wide")
 st.title("Trade History")
@@ -28,11 +29,7 @@ if not rows:
     st.stop()
 
 if any(r.get("synthetic") for r in rows):
-    notice = next(
-        (r.get("disclaimer") for r in rows if r.get("synthetic") and r.get("disclaimer")),
-        "SYNTHETIC DEMO DATA - these trades never happened.",
-    )
-    st.error(f"**⚠ {notice}**")
+    demo_badge()
 
 df = pd.DataFrame(rows)
 df["entry_dt"] = pd.to_datetime(df["entry_time"], errors="coerce")

@@ -22,6 +22,7 @@ from dashboard.analytics import (
     weekly_stats,
 )
 from dashboard.trade_log import OPEN_STATUSES, load_trade_log
+from dashboard.ui import demo_badge
 
 DATA_DIR = os.path.join(_REPO_ROOT, "data_pipeline", "data")
 
@@ -55,11 +56,7 @@ if source == "Live trade log":
     trades = closed
     initial_capital = 10_000.0
     if any(r.get("synthetic") for r in closed):
-        notice = next(
-            (r.get("disclaimer") for r in closed if r.get("synthetic") and r.get("disclaimer")),
-            "SYNTHETIC DEMO DATA - these trades never happened.",
-        )
-        st.error(f"**⚠ {notice}**")
+        demo_badge()
     st.caption(
         f"{len(closed)} closed trade(s) from the live log"
         + (f"; {open_count} open trade(s) excluded from these metrics." if open_count else ".")
@@ -78,7 +75,7 @@ else:
     if initial_capital is None:
         initial_capital = meta.get("ending_capital", 0.0) - meta.get("total_pnl_usd", 0.0)
     if meta.get("synthetic"):
-        st.error(f"**⚠ {meta.get('disclaimer', 'SYNTHETIC DEMO DATA')}**")
+        demo_badge()
     if not trades:
         st.info("This run produced no trades.")
         st.stop()
