@@ -73,20 +73,20 @@ def test_admin_level_spacing() -> None:
     assert state.admin_levels_down[5].price == 82
 
 
-def test_default_range_window_is_1230_to_1830() -> None:
-    assert AdminLevelsConfig().range_window_start == time(hour=12, minute=30)
+def test_default_range_window_is_0530_to_1830() -> None:
+    assert AdminLevelsConfig().range_window_start == time(hour=5, minute=30)
     assert AdminLevelsConfig().range_window_end == time(hour=18, minute=30)
 
 
-def test_range_ignores_extremes_before_1230() -> None:
+def test_range_ignores_extremes_before_prior_day_boundary() -> None:
     agent = DeterministicTradingAgent(
         admin_levels_config=AdminLevelsConfig(require_pivot_confirmation=False)
     )
     candles = [
+        # Previous trading day (before the 05:30 boundary): must not set extremes
+        # for the day that starts at 2026-03-02 05:30:00.
+        _candle("2026-03-02 05:00:00", 102, 200, 50, 105),
         _candle("2026-03-02 05:30:00", 100, 101, 99, 100),
-        # Outside the 12:30-18:30 range window: must not set session extremes.
-        _candle("2026-03-02 10:00:00", 102, 200, 50, 105),
-        # Inside the range window: these define the session high/low instead.
         _candle("2026-03-02 13:00:00", 104, 120, 90, 95),
         _candle("2026-03-02 18:31:00", 95, 96, 94, 95),
     ]
@@ -169,6 +169,42 @@ def test_manual_swings_override_auto_detection() -> None:
     assert state.admin_levels_down[0].price == 59000
     assert state.admin_levels_up[5].price == 66000
     assert state.admin_levels_down[5].price == 54000
+
+
+def test_no_confirmed_pivot_falls_back_to_raw_session_extremes() -> None:
+    """If no RED<->GREEN reversal ever lands near the extreme, still finalize levels
+    using the raw (unconfirmed) session high/low rather than leaving the day with none.
+    """
+    agent = DeterministicTradingAgent(admin_levels_config=_build_config_with_pivot_confirmation())
+    candles = [
+        # None of these candles have open near either extreme, so classify_candle
+        # returns None for all of them -> a RED<->GREEN reversal can never be found.
+        _candle("2026-03-02 05:30:00", 100, 101, 99, 100),
+        _candle("2026-03-02 10:00:00", 102, 108, 100, 104),
+        _candle("2026-03-02 12:00:00", 105, 112, 103, 107),
+        _candle("2026-03-02 15:00:00", 108, 115, 101, 110),
+        _candle("2026-03-02 18:31:00", 110, 111, 109, 110),
+    ]
+    for c in candles:
+        agent.on_candle_close(c, 100, 10000, c.timestamp_ist)
+
+    state = agent.state.admin_levels_state
+    assert state is not None
+    assert state.levels_finalized
+    assert state.used_unconfirmed_fallback is True
+    assert state.session_high == 115
+    assert state.session_low == 99
+
+
+def _build_config_with_pivot_confirmation() -> AdminLevelsConfig:
+    return AdminLevelsConfig(
+        trading_day_start=time(hour=5, minute=30),
+        range_window_start=time(hour=5, minute=30),
+        range_window_end=time(hour=18, minute=30),
+        ny_session_start=time(hour=18, minute=30),
+        ny_session_end=time(hour=21, minute=30),
+        require_pivot_confirmation=True,
+    )
 
 
 def test_manual_swings_reproduce_hand_picked_levels() -> None:

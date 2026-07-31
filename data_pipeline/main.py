@@ -10,6 +10,7 @@ import pandas as pd
 from data_pipeline import config
 from data_pipeline.fetch_binance import fetch_ohlcv
 from data_pipeline.utils import ensure_output_dir, normalize_symbol_for_filename, parse_symbols
+from strategies import get_strategy, list_strategies
 from trading_agent import Candle, run_backtest
 
 
@@ -47,8 +48,9 @@ def _run_symbol_pipeline(
     output_dir: Path,
     capital: float,
     key_levels: List[float],
+    strategy: str = "admin_levels_reversal",
 ) -> Dict[str, Any]:
-    print(f"[start] symbol={symbol} start={start_date} end={end_date}")
+    print(f"[start] symbol={symbol} start={start_date} end={end_date} strategy={strategy}")
     df = fetch_ohlcv(symbol=symbol, start_date=start_date, end_date=end_date)
     if df.empty:
         return {
@@ -64,11 +66,13 @@ def _run_symbol_pipeline(
     _save_market_csv(df, market_csv_path)
 
     candles, ema_values = _prepare_backtest_inputs(df)
+    agent = get_strategy(strategy, key_levels=key_levels)
     backtest_result = run_backtest(
         candles=candles,
         ema_values=ema_values,
         key_levels=key_levels,
         initial_capital=capital,
+        agent=agent,
     )
 
     bt_json_name = market_csv_name.replace(".csv", "_backtest.json")
@@ -77,6 +81,7 @@ def _run_symbol_pipeline(
         json.dump(
             {
                 "symbol": symbol,
+                "strategy": strategy,
                 "candles": len(df),
                 "start_timestamp_ist": str(df["timestamp"].iloc[0]),
                 "end_timestamp_ist": str(df["timestamp"].iloc[-1]),
@@ -116,6 +121,12 @@ def main() -> None:
         default="",
         help="Comma-separated key levels for backtest, e.g. 23500,23600",
     )
+    parser.add_argument(
+        "--strategy",
+        default="admin_levels_reversal",
+        choices=list_strategies(),
+        help="Registered strategy name from strategies/.",
+    )
     args = parser.parse_args()
 
     key_levels = (
@@ -135,6 +146,7 @@ def main() -> None:
             output_dir=output_dir,
             capital=args.capital,
             key_levels=key_levels,
+            strategy=args.strategy,
         )
         summaries.append(summary)
 

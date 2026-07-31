@@ -119,7 +119,7 @@ class ManualSwing:
 @dataclass(frozen=True)
 class AdminLevelsConfig:
     trading_day_start: time = time(hour=5, minute=30)
-    range_window_start: time = time(hour=12, minute=30)
+    range_window_start: time = time(hour=5, minute=30)
     range_window_end: time = time(hour=18, minute=30)
     ny_session_start: time = time(hour=18, minute=30)
     ny_session_end: time = time(hour=21, minute=30)
@@ -139,6 +139,8 @@ class AdminLevelsState:
     range_window_end: str
     session_high: Optional[float] = None
     session_low: Optional[float] = None
+    raw_session_high: Optional[float] = None
+    raw_session_low: Optional[float] = None
     fib0: Optional[float] = None
     fib0_5: Optional[float] = None
     fib1: Optional[float] = None
@@ -147,6 +149,7 @@ class AdminLevelsState:
     admin_levels_down: List[AdminLevel] = field(default_factory=list)
     ny_session_active: bool = False
     levels_finalized: bool = False
+    used_unconfirmed_fallback: bool = False
 
 
 def _safe_float(value: Any) -> Optional[float]:
@@ -374,6 +377,7 @@ def _strategy_state_to_dict(state: Optional[AdminLevelsState]) -> Optional[Dict[
         "sessionOpenClose": state.session_open_close,
         "adminLevelsUp": [lvl.__dict__ for lvl in state.admin_levels_up],
         "adminLevelsDown": [lvl.__dict__ for lvl in state.admin_levels_down],
+        "usedUnconfirmedFallback": state.used_unconfirmed_fallback,
         "nySessionActive": state.ny_session_active,
         "levelsFinalized": state.levels_finalized,
     }
@@ -758,6 +762,10 @@ class DeterministicTradingAgent:
         if not state.levels_finalized and range_start <= ts <= range_end:
             high_candidate = current_candle.high
             low_candidate = current_candle.low
+            if state.raw_session_high is None or high_candidate > state.raw_session_high:
+                state.raw_session_high = high_candidate
+            if state.raw_session_low is None or low_candidate < state.raw_session_low:
+                state.raw_session_low = low_candidate
             if (
                 state.session_high is None
                 or high_candidate > state.session_high
@@ -794,6 +802,18 @@ class DeterministicTradingAgent:
         if manual is not None and manual.anchor is not None:
             finalize_anchor = manual.anchor
 
+        # No pivot-confirmed extreme ever appeared this session: fall back to the raw
+        # (unconfirmed) session high/low rather than leaving the day with no levels at
+        # all — silently skipping an entire trading day is worse than an unconfirmed one.
+        used_fallback = False
+        if manual is None:
+            if finalize_high is None and state.raw_session_high is not None:
+                finalize_high = state.raw_session_high
+                used_fallback = True
+            if finalize_low is None and state.raw_session_low is not None:
+                finalize_low = state.raw_session_low
+                used_fallback = True
+
         if (
             not state.levels_finalized
             and ts > range_end
@@ -801,6 +821,7 @@ class DeterministicTradingAgent:
             and finalize_low is not None
             and finalize_anchor is not None
         ):
+            state.used_unconfirmed_fallback = used_fallback
             state.session_high = finalize_high
             state.session_low = finalize_low
             state.session_open_close = finalize_anchor
@@ -1001,6 +1022,10 @@ def run_backtest(
     key_levels: Sequence[float],
     initial_capital: float,
     manual_swings: Optional[Dict[str, Tuple[float, float, Optional[float]]]] = None,
+    agent: Optional["DeterministicTradingAgent"] = None,
+    evaluate_exit: Optional[
+        Any  # Callable[[PositionState, Candle], Tuple[bool, Optional[float], Optional[str], Optional[float]]]
+    ] = None,
 ) -> BacktestResult:
     """
     Runs deterministic backtest over a candle sequence.
@@ -1008,10 +1033,20 @@ def run_backtest(
     Notes:
     - Uses the same signal logic as live processing.
     - Records per-candle decisions and equity curve.
-    - Closes positions only when close-based SL/target condition is met.
+    - Exit is evaluated intrabar (candle high/low), not just its close.
     - `manual_swings` maps a trading-day date ("YYYY-MM-DD") to the admin's
       hand-drawn (swing_high, swing_low, anchor|None); when given, that day's
       ladder is projected from those swings instead of auto-detected extremes.
+      Only applied when `agent` is not supplied (see below).
+    - `agent`: pass a pre-built strategy instance (e.g. from a different registered
+      strategy in strategies/) to run this same backtest engine over it, instead of
+      the default admin-levels-reversal `DeterministicTradingAgent`. Any `key_levels`/
+      `manual_swings` args are ignored when `agent` is supplied — configure the agent
+      yourself before calling.
+    - `evaluate_exit`: pass an alternate exit-rule callable (position, candle) ->
+      (should_exit, pnl_usd, exit_reason, exit_price) for strategies with different
+      risk/exit models. Defaults to the intrabar SL/target check used by the
+      admin-levels-reversal strategy.
     """
     if len(candles) != len(ema_values):
         raise ValueError("candles and ema_values length mismatch.")
@@ -1020,11 +1055,13 @@ def run_backtest(
     if capital <= 0:
         raise ValueError("initial_capital must be positive.")
 
-    agent = DeterministicTradingAgent(key_levels=key_levels)
-    for day, swing in (manual_swings or {}).items():
-        high, low = swing[0], swing[1]
-        anchor = swing[2] if len(swing) > 2 else None
-        agent.set_manual_swings(day, high, low, anchor)
+    if agent is None:
+        agent = DeterministicTradingAgent(key_levels=key_levels)
+        for day, swing in (manual_swings or {}).items():
+            high, low = swing[0], swing[1]
+            anchor = swing[2] if len(swing) > 2 else None
+            agent.set_manual_swings(day, high, low, anchor)
+    exit_evaluator = evaluate_exit or _evaluate_exit_intrabar
     decisions: List[Dict[str, Any]] = []
     trades: List[BacktestTrade] = []
     equity_curve: List[Dict[str, Any]] = []
@@ -1039,7 +1076,7 @@ def run_backtest(
         )
         decisions.append(decision)
 
-        should_exit, pnl_usd, exit_reason, exit_price = _evaluate_exit_intrabar(
+        should_exit, pnl_usd, exit_reason, exit_price = exit_evaluator(
             agent.state.current_open_position, candle
         )
         if should_exit and pnl_usd is not None and exit_reason is not None:

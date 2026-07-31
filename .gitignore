@@ -4,3 +4,14 @@ __pycache__/
 .pytest_cache/
 .DS_Store
 .env
+
+# Raw OHLCV candle dumps — regenerable via data_pipeline, ~25MB and growing.
+# The dashboard only reads the *_backtest.json summaries, which stay tracked.
+data_pipeline/data/*.csv
+!data_pipeline/data/*_backtest.json
+
+# Live trade log is machine-local runtime state, not source.
+data_pipeline/data/live_trade_log.json
+
+# Internal engineering report — kept out of the public repo deliberately.
+REPORT.html

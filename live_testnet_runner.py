@@ -8,7 +8,9 @@ from typing import Optional
 import ccxt
 
 from binance_testnet import build_testnet_exchange, execute_strategy_decision
-from trading_agent import Candle, DeterministicTradingAgent
+from dashboard.trade_log import append_close_trade, append_open_trade
+from strategies import get_strategy, list_strategies
+from trading_agent import Action, Candle, _evaluate_exit_intrabar
 
 
 def _build_market_data_exchange() -> ccxt.binanceusdm:
@@ -66,6 +68,12 @@ def main() -> None:
     parser.add_argument("--capital", type=float, default=10000.0)
     parser.add_argument("--key-levels", required=True, help="Comma-separated levels")
     parser.add_argument("--loop-seconds", type=int, default=180)
+    parser.add_argument(
+        "--strategy",
+        default="admin_levels_reversal",
+        choices=list_strategies(),
+        help="Registered strategy name from strategies/.",
+    )
     args = parser.parse_args()
 
     api_key = os.getenv("BINANCE_TESTNET_API_KEY", "").strip()
@@ -75,9 +83,9 @@ def main() -> None:
 
     testnet_exchange = build_testnet_exchange(api_key=api_key, api_secret=api_secret)
     levels = [float(x.strip()) for x in args.key_levels.split(",") if x.strip()]
-    agent = DeterministicTradingAgent(key_levels=levels)
+    agent = get_strategy(args.strategy, key_levels=levels)
 
-    print(f"[runner] Started symbol={args.symbol} levels={levels} loop={args.loop_seconds}s")
+    print(f"[runner] Started symbol={args.symbol} strategy={args.strategy} levels={levels} loop={args.loop_seconds}s")
     while True:
         try:
             prev_candle, current_candle = _latest_prev_and_current(args.symbol)
@@ -88,13 +96,33 @@ def main() -> None:
                 continue
 
             agent.state.previous_candle = prev_candle
+            capital_at_entry = args.capital
             decision = agent.on_candle_close(
                 candle=current_candle,
                 ema_7=ema_7,
-                capital=args.capital,
+                capital=capital_at_entry,
                 timestamp_ist=current_candle.timestamp_ist,
             )
             print("[decision]", decision)
+
+            if decision["action"] in (Action.BUY.value, Action.SELL.value):
+                trade_number = append_open_trade(decision)
+                print(f"[trade-log] Opened trade #{trade_number}")
+
+            should_exit, pnl_usd, exit_reason, exit_price = _evaluate_exit_intrabar(
+                agent.state.current_open_position, current_candle
+            )
+            if should_exit and pnl_usd is not None and exit_reason is not None:
+                append_close_trade(
+                    pnl_usd=pnl_usd,
+                    exit_price=exit_price if exit_price is not None else current_candle.close,
+                    exit_reason=exit_reason,
+                    timestamp_ist=current_candle.timestamp_ist,
+                    capital_at_entry=capital_at_entry,
+                )
+                agent.close_position()
+                print(f"[trade-log] Closed trade: reason={exit_reason} pnl_usd={pnl_usd:.2f}")
+
             result = execute_strategy_decision(
                 exchange=testnet_exchange,
                 symbol=args.symbol,

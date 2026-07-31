@@ -1,0 +1,84 @@
+{
+  "symbol": "BTC/USDT:USDT",
+  "strategy": "admin_levels_reversal",
+  "candles": 43680,
+  "start_timestamp_ist": "2026-04-27 05:30:00",
+  "end_timestamp_ist": "2026-07-27 05:27:00",
+  "total_trades": 7,
+  "wins": 1,
+  "losses": 6,
+  "total_pnl_usd": -150.000000000395,
+  "ending_capital": 9849.999999999605,
+  "trades": [
+    {
+      "side": "SELL",
+      "entry_timestamp_ist": "2026-05-17 19:00:00",
+      "exit_timestamp_ist": "2026-05-17 19:03:00",
+      "entry_price": 78212.3,
+      "exit_price": 78214.86410256411,
+      "quantity": 3.0,
+      "pnl_usd": -100.00000000024738,
+      "exit_reason": "SL_HIT_INTRABAR"
+    },
+    {
+      "side": "SELL",
+      "entry_timestamp_ist": "2026-06-20 21:18:00",
+      "exit_timestamp_ist": "2026-06-20 21:21:00",
+      "entry_price": 64103.1,
+      "exit_price": 64105.69000259,
+      "quantity": 2.9699999999999256,
+      "pnl_usd": -100.00000000007462,
+      "exit_reason": "SL_HIT_INTRABAR"
+    },
+    {
+      "side": "BUY",
+      "entry_timestamp_ist": "2026-07-11 18:48:00",
+      "exit_timestamp_ist": "2026-07-11 18:51:00",
+      "entry_price": 64175.5,
+      "exit_price": 64172.88356881214,
+      "quantity": 2.9399999999999036,
+      "pnl_usd": -100.00000000001143,
+      "exit_reason": "SL_HIT_INTRABAR"
+    },
+    {
+      "side": "BUY",
+      "entry_timestamp_ist": "2026-07-11 19:12:00",
+      "exit_timestamp_ist": "2026-07-11 19:15:00",
+      "entry_price": 64219.6,
+      "exit_price": 64216.95659529474,
+      "quantity": 2.9099999999998998,
+      "pnl_usd": -100.00000000001125,
+      "exit_reason": "SL_HIT_INTRABAR"
+    },
+    {
+      "side": "BUY",
+      "entry_timestamp_ist": "2026-07-12 20:00:00",
+      "exit_timestamp_ist": "2026-07-12 20:03:00",
+      "entry_price": 64023.3,
+      "exit_price": 64020.629059829065,
+      "quantity": 2.8799999999998964,
+      "pnl_usd": -99.99999999990327,
+      "exit_reason": "SL_HIT_INTRABAR"
+    },
+    {
+      "side": "BUY",
+      "entry_timestamp_ist": "2026-07-25 20:33:00",
+      "exit_timestamp_ist": "2026-07-25 20:36:00",
+      "entry_price": 64164.6,
+      "exit_price": 64176.74574898785,
+      "quantity": 2.8499999999999255,
+      "pnl_usd": 449.9999999999096,
+      "exit_reason": "TARGET_HIT_INTRABAR"
+    },
+    {
+      "side": "BUY",
+      "entry_timestamp_ist": "2026-07-25 21:30:00",
+      "exit_timestamp_ist": "2026-07-25 21:33:00",
+      "entry_price": 64179.7,
+      "exit_price": 64177.123012498385,
+      "quantity": 2.984999999999898,
+      "pnl_usd": -100.00000000005669,
+      "exit_reason": "SL_HIT_INTRABAR"
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+[theme]
+base = "dark"
+primaryColor = "#7aaadd"
+backgroundColor = "#0e1117"
+secondaryBackgroundColor = "#151a24"
+textColor = "#e5e9f0"
+
+[server]
+headless = true
+# Backtest JSONs are read from disk on demand; no uploads needed.
+maxUploadSize = 5
+
+[browser]
+gatherUsageStats = false
