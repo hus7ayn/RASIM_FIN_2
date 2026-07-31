@@ -2,9 +2,24 @@
 
 from __future__ import annotations
 
+import os
+
 import streamlit as st
 
 DEMO_CAPTION = "Illustrative figures for interface demonstration — not real trading results."
+
+# Set RASIM_HIDE_DEMO_BADGE=1 to suppress the on-screen demo badge.
+#
+# It exists as a local switch rather than a code deletion because the same codebase is
+# deployed to Streamlit Community Cloud, where apps are reachable by URL to anyone who
+# has it. The badge is redundant for the author, who knows the figures are invented, but
+# it is the only thing distinguishing them from real results for anyone else who opens
+# the app. Setting this in a local shell keeps the local view clean while a deployment
+# that does not set it still discloses.
+#
+# File exports are labelled regardless of this flag: a CSV or PDF can be forwarded long
+# after the context is lost, and hiding an on-screen badge costs nothing there.
+HIDE_ENV_VAR = "RASIM_HIDE_DEMO_BADGE"
 
 _BADGE_CSS = """
 <style>
@@ -28,14 +43,19 @@ _BADGE_CSS = """
 """
 
 
+def badge_hidden() -> bool:
+    return os.getenv(HIDE_ENV_VAR, "").strip().lower() in ("1", "true", "yes", "on")
+
+
 def demo_badge(note: str = DEMO_CAPTION) -> None:
-    """Render a compact 'demo data' badge.
+    """Render a compact 'demo data' badge, unless suppressed locally.
 
     Deliberately understated rather than an error banner — a red alert box reads as a
-    malfunction and got in the way of demoing the UI. It still has to be present and
-    legible on every page that shows invented numbers, so the disclosure survives; only
-    its styling is toned down.
+    malfunction. See HIDE_ENV_VAR above for why suppression is an environment switch
+    instead of removing the call sites.
     """
+    if badge_hidden():
+        return
     st.markdown(_BADGE_CSS, unsafe_allow_html=True)
     st.markdown(
         '<div class="rasim-demo-badge"><span class="dot"></span>Demo data</div>'

@@ -23,7 +23,7 @@ from dashboard.analytics import (
     weekly_stats,
 )
 from dashboard.pdf_report import generate_pdf_report
-from dashboard.ui import demo_badge
+from dashboard.ui import badge_hidden, demo_badge
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_DIR = os.path.join(REPO_ROOT, "data_pipeline", "data")
@@ -67,7 +67,8 @@ SYNTHETIC_NOTICE = data.get("disclaimer") or (
 
 if IS_SYNTHETIC:
     demo_badge()
-    st.sidebar.caption("◆ Demo data file")
+    if not badge_hidden():
+        st.sidebar.caption("◆ Demo data file")
 
 
 def _export_prefix() -> str:
