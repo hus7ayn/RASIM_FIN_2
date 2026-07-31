@@ -11,9 +11,22 @@ if _REPO_ROOT not in sys.path:
 import pandas as pd
 import streamlit as st
 
-from dashboard.live import get_live_snapshot
+from dashboard.live import fetch_recent_candles, get_live_snapshot
+from dashboard.position_manager import (
+    amend_tp_sl,
+    book_partial,
+    compute_live_pnl,
+    credentials_present,
+    preflight_check,
+)
 from dashboard.trade_log import current_open_trade
 from strategies import describe_strategy, list_strategies
+
+
+def _now_ist_str() -> str:
+    return (datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(hours=5, minutes=30)).strftime(
+        "%Y-%m-%d %H:%M:%S"
+    )
 
 st.set_page_config(page_title="RASIM Live Monitor", layout="wide")
 st.title("RASIM Trading Strategy — Live Monitor")
@@ -118,25 +131,6 @@ def render_live_panel() -> None:
     if snap["signal_reason"]:
         st.caption(f"Reason: {snap['signal_reason']}")
 
-    st.subheader("Trade Execution Panel")
-    open_trade = current_open_trade()
-    if open_trade is None:
-        st.info("No open trade recorded by live_testnet_runner.py right now.")
-    else:
-        t1, t2, t3, t4 = st.columns(4)
-        t1.metric("Trade #", open_trade["trade_number"])
-        t1.metric("Direction", open_trade["side"])
-        t2.metric("Entry Price", f"{open_trade['entry_price']:,.2f}")
-        t2.metric("Entry Time", open_trade["entry_time"])
-        t3.metric("Stop Loss", f"{open_trade['stop_loss_price']:,.2f}")
-        t3.metric("Target", f"{open_trade['target_price']:,.2f}")
-        t4.metric("Risk:Reward", f"1:{open_trade['risk_reward_ratio']:.2f}")
-        t4.metric("Status", open_trade["status"])
-        st.caption(
-            "This reflects the trade log written by live_testnet_runner.py — "
-            "start that process separately for this panel to show live positions."
-        )
-
     st.subheader("Distances")
     d1, d2, d3, d4 = st.columns(4)
     for col, label, key in [
@@ -152,4 +146,160 @@ def render_live_panel() -> None:
             col.metric(label, f"{dist['price_diff']:+,.2f}", f"{dist['pct_diff']:+.3f}%")
 
 
+def _last_price(sym: str) -> float | None:
+    try:
+        candles = fetch_recent_candles(symbol=sym, limit=2)
+        return candles[-1].close if candles else None
+    except Exception:  # noqa: BLE001
+        return None
+
+
+# Deliberately a separate fragment with NO run_every: an auto-refresh tick would clear
+# a half-typed TP/SL or partial-size entry. This panel reruns only on interaction.
+@st.fragment
+def render_position_panel() -> None:
+    st.subheader("Open Position")
+
+    trade = current_open_trade()
+    if trade is None:
+        st.info(
+            "No open position in the trade log. Run `live_testnet_runner.py`, or open one "
+            "via the strategy, and the live controls will appear here."
+        )
+        if st.button("Refresh position", key="pos_refresh_empty"):
+            st.rerun(scope="fragment")
+        return
+
+    if trade.get("synthetic"):
+        st.error(
+            f"**⚠ {trade.get('disclaimer', 'SYNTHETIC DEMO POSITION - not a real position.')}**"
+        )
+
+    current_price = _last_price(symbol) or float(trade["entry_price"])
+    remaining = float(trade["remaining_quantity"] or 0.0)
+    pnl = compute_live_pnl(trade["side"], float(trade["entry_price"]), current_price, remaining)
+
+    p1, p2, p3, p4 = st.columns(4)
+    p1.metric("Trade #", trade["trade_number"])
+    p1.metric("Direction", trade["side"])
+    p2.metric("Entry Price", f"{trade['entry_price']:,.2f}")
+    p2.metric("Current Price", f"{current_price:,.2f}")
+    p3.metric(
+        "Live P&L",
+        f"${pnl['pnl_usd']:+,.2f}",
+        f"{pnl['pnl_pct_of_notional']:+.4f}% of notional",
+    )
+    p3.metric("Position Size", f"{remaining:.5f}")
+    p4.metric("Take Profit", f"{trade['target_price']:,.2f}")
+    p4.metric("Stop Loss", f"{trade['stop_loss_price']:,.2f}")
+
+    q1, q2, q3 = st.columns(3)
+    q1.metric("Status", trade["status"])
+    q2.metric("Booked so far", f"${float(trade['realized_pnl_usd'] or 0):+,.2f}")
+    q3.metric(
+        "P&L on engine basis",
+        f"${pnl['pnl_usd_engine_basis']:+,.2f}",
+        help=(
+            "The strategy measures its $100 stop and $450 target against this figure, "
+            "which multiplies P&L by leverage. It is 13x the textbook value shown above."
+        ),
+    )
+
+    warnings = preflight_check(float(trade["entry_price"]), remaining, capital)
+    for w in warnings:
+        st.warning(w)
+
+    live_writes = st.toggle(
+        "Send changes to the exchange",
+        value=False,
+        key="pos_live_writes",
+        help=(
+            "Off: changes are recorded in the trade log only. On: real cancel/replace and "
+            "reduce-only orders are submitted to the Binance demo futures endpoint."
+        ),
+    )
+    if live_writes and not credentials_present():
+        st.error("API credentials are not set — leave this off, or export the env vars and restart.")
+        live_writes = False
+
+    edit_col, book_col = st.columns(2)
+
+    # ---------------------------------------------------------- TP / SL editing
+    with edit_col:
+        st.markdown("**Edit TP / SL**")
+        with st.form("tp_sl_form", border=False):
+            new_tp = st.number_input(
+                "Take Profit", value=float(trade["target_price"]), step=1.0, format="%.2f",
+            )
+            new_sl = st.number_input(
+                "Stop Loss", value=float(trade["stop_loss_price"]), step=1.0, format="%.2f",
+            )
+            if st.form_submit_button("Apply TP / SL"):
+                try:
+                    res = amend_tp_sl(
+                        symbol=symbol,
+                        new_target=new_tp,
+                        new_stop=new_sl,
+                        timestamp_ist=_now_ist_str(),
+                        validate_only=not live_writes,
+                    )
+                    if res["exchange_applied"]:
+                        st.success(
+                            f"Applied on exchange — cancelled {len(res['cancelled_orders'])}, "
+                            f"placed {len(res['placed_orders'])}."
+                        )
+                    else:
+                        st.success("Recorded in trade log (not sent to exchange).")
+                    st.rerun(scope="fragment")
+                except Exception as exc:  # noqa: BLE001
+                    st.error(f"Could not update TP/SL: {exc}")
+
+    # ---------------------------------------------------------- partial booking
+    with book_col:
+        st.markdown("**Partial position booking**")
+        with st.form("partial_form", border=False):
+            mode = st.radio("Book by", ["Percent", "Quantity"], horizontal=True)
+            pct = st.slider("Percent of open size", 1, 100, 25, step=1)
+            qty = st.number_input(
+                "Quantity", value=round(remaining / 2, 5), min_value=0.0,
+                max_value=float(remaining), step=0.001, format="%.5f",
+            )
+            preview_qty = remaining * pct / 100.0 if mode == "Percent" else qty
+            st.caption(
+                f"Books {preview_qty:.5f} of {remaining:.5f}, leaving "
+                f"{max(remaining - preview_qty, 0):.5f} open."
+            )
+            if st.form_submit_button("Book partial"):
+                try:
+                    res = book_partial(
+                        symbol=symbol,
+                        fraction=(pct / 100.0) if mode == "Percent" else None,
+                        quantity=None if mode == "Percent" else qty,
+                        current_price=current_price,
+                        timestamp_ist=_now_ist_str(),
+                        validate_only=not live_writes,
+                    )
+                    st.success(
+                        f"Booked {res['requested_quantity']:.5f} at {current_price:,.2f} — "
+                        f"leg P&L ${res['leg_pnl_usd']:+,.2f}; "
+                        f"{res['remaining_after']:.5f} still open ({res['status']})."
+                        + ("" if res["exchange_applied"] else " Log only, no exchange order.")
+                    )
+                    st.rerun(scope="fragment")
+                except Exception as exc:  # noqa: BLE001
+                    st.error(f"Could not book partial: {exc}")
+
+    with st.expander("Partial exits and TP/SL history for this trade"):
+        if trade["partial_exits"]:
+            st.dataframe(pd.DataFrame(trade["partial_exits"]), width="stretch", hide_index=True)
+        else:
+            st.caption("No partial exits yet.")
+        if trade["tp_sl_modifications"]:
+            st.dataframe(pd.DataFrame(trade["tp_sl_modifications"]), width="stretch", hide_index=True)
+        else:
+            st.caption("TP and SL unchanged since entry.")
+
+
 render_live_panel()
+st.divider()
+render_position_panel()

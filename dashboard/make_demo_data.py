@@ -28,6 +28,9 @@ REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT_PATH = os.path.join(
     REPO_ROOT, "data_pipeline", "data", "SYNTHETIC_DEMO_1y_backtest.json"
 )
+# The live trade log has a fixed filename the dashboard reads, so the synthetic marker
+# rides on each record rather than in the name.
+LOG_OUT_PATH = os.path.join(REPO_ROOT, "data_pipeline", "data", "live_trade_log.json")
 
 DISCLAIMER = (
     "SYNTHETIC DEMO DATA - INVENTED FOR UI DEMONSTRATION ONLY. "
@@ -110,6 +113,121 @@ def _build_trades(rng: random.Random) -> List[Dict[str, Any]]:
     return trades
 
 
+def _build_demo_trade_log(rng: random.Random) -> List[Dict[str, Any]]:
+    """Invented live-trade history so the Trade History and Analysis pages have
+    something to show, including partial exits and TP/SL edits. Every row is tagged
+    `"synthetic": true` and the pages surface a banner when they see it."""
+    rows: List[Dict[str, Any]] = []
+    day = datetime(2026, 7, 6, 18, 30)
+    for i in range(1, 19):
+        entry_ts = day + timedelta(days=i, minutes=rng.randint(0, 170))
+        side = "BUY" if rng.random() < 0.5 else "SELL"
+        entry_price = round(rng.uniform(63_000, 66_500), 1)
+        qty = round(rng.uniform(0.06, 0.09), 5)
+        sl = round(entry_price * (0.9965 if side == "BUY" else 1.0035), 2)
+        tp = round(entry_price * (1.0062 if side == "BUY" else 0.9938), 2)
+
+        partials: List[Dict[str, Any]] = []
+        mods: List[Dict[str, Any]] = []
+        realized = 0.0
+        remaining = qty
+
+        if rng.random() < 0.35:  # some trades get partially booked
+            book_qty = round(qty * rng.choice([0.25, 0.33, 0.5]), 5)
+            book_px = round(entry_price * (1.0028 if side == "BUY" else 0.9972), 1)
+            leg = round((book_px - entry_price) * (1 if side == "BUY" else -1) * book_qty, 2)
+            partials.append({
+                "timestamp_ist": (entry_ts + timedelta(minutes=6)).strftime("%Y-%m-%d %H:%M:%S"),
+                "quantity": book_qty, "exit_price": book_px,
+                "pnl_usd": leg, "reason": "PARTIAL_BOOK",
+            })
+            realized += leg
+            remaining = round(qty - book_qty, 5)
+
+        if rng.random() < 0.3:  # some get their stop moved
+            new_sl = round(sl * (1.0012 if side == "BUY" else 0.9988), 2)
+            mods.append({
+                "timestamp_ist": (entry_ts + timedelta(minutes=4)).strftime("%Y-%m-%d %H:%M:%S"),
+                "field": "stop_loss", "old_value": sl, "new_value": new_sl,
+            })
+            sl = new_sl
+
+        # Leave the final trade running so the Live Monitor's TP/SL edit and partial
+        # booking controls have an open position to act on in a demo.
+        still_open = i == 18
+        if still_open:
+            if not partials:
+                book_qty = round(qty * 0.4, 5)
+                book_px = round(entry_price * (1.0028 if side == "BUY" else 0.9972), 1)
+                leg = round((book_px - entry_price) * (1 if side == "BUY" else -1) * book_qty, 2)
+                partials.append({
+                    "timestamp_ist": (entry_ts + timedelta(minutes=6)).strftime("%Y-%m-%d %H:%M:%S"),
+                    "quantity": book_qty, "exit_price": book_px,
+                    "pnl_usd": leg, "reason": "PARTIAL_BOOK",
+                })
+                realized += leg
+                remaining = round(qty - book_qty, 5)
+            rows.append({
+                "synthetic": True,
+                "disclaimer": DISCLAIMER,
+                "trade_number": i,
+                "symbol": "BTC/USDT:USDT",
+                "date": entry_ts.strftime("%Y-%m-%d"),
+                "entry_time": entry_ts.strftime("%Y-%m-%d %H:%M:%S"),
+                "exit_time": None,
+                "side": side,
+                "entry_price": entry_price,
+                "quantity": remaining,
+                "original_quantity": qty,
+                "remaining_quantity": remaining,
+                "stop_loss_price": sl,
+                "target_price": tp,
+                "risk_reward_ratio": 4.5,
+                "exit_price": None,
+                "pnl_usd": None,
+                "pnl_pct": None,
+                "realized_pnl_usd": round(realized, 2),
+                "exit_reason": None,
+                "status": "Partially Closed" if partials else "Open",
+                "partial_exits": partials,
+                "tp_sl_modifications": mods,
+            })
+            continue
+
+        won = rng.random() < 0.40
+        exit_px = tp if won else sl
+        final_leg = round((exit_px - entry_price) * (1 if side == "BUY" else -1) * remaining, 2)
+        total = round(realized + final_leg, 2)
+        exit_ts = entry_ts + timedelta(minutes=rng.randint(5, 48))
+
+        rows.append({
+            "synthetic": True,
+            "disclaimer": DISCLAIMER,
+            "trade_number": i,
+            "symbol": "BTC/USDT:USDT",
+            "date": entry_ts.strftime("%Y-%m-%d"),
+            "entry_time": entry_ts.strftime("%Y-%m-%d %H:%M:%S"),
+            "exit_time": exit_ts.strftime("%Y-%m-%d %H:%M:%S"),
+            "side": side,
+            "entry_price": entry_price,
+            "quantity": 0.0,
+            "original_quantity": qty,
+            "remaining_quantity": 0.0,
+            "stop_loss_price": sl,
+            "target_price": tp,
+            "risk_reward_ratio": 4.5,
+            "exit_price": exit_px,
+            "pnl_usd": total,
+            "pnl_pct": round(total / INITIAL_CAPITAL * 100, 4),
+            "realized_pnl_usd": total,
+            "exit_reason": "TARGET_HIT_INTRABAR" if won else "SL_HIT_INTRABAR",
+            "status": "Target Hit" if won else "Stop Loss Hit",
+            "partial_exits": partials,
+            "tp_sl_modifications": mods,
+        })
+    return rows
+
+
 def main() -> None:
     rng = random.Random(SEED)
     trades = _build_trades(rng)
@@ -141,6 +259,16 @@ def main() -> None:
     print(
         f"  trades={len(trades)} wins={payload['wins']} losses={payload['losses']} "
         f"net=${total_pnl:+,.2f} ending=${payload['ending_capital']:,.2f}"
+    )
+
+    log_rows = _build_demo_trade_log(rng)
+    with open(LOG_OUT_PATH, "w", encoding="utf-8") as f:
+        json.dump(log_rows, f, indent=2)
+    log_net = sum(r["pnl_usd"] for r in log_rows)
+    print(f"wrote {LOG_OUT_PATH}")
+    print(
+        f"  demo trade-log rows={len(log_rows)} net=${log_net:+,.2f} "
+        f"(each row tagged synthetic:true)"
     )
 
 

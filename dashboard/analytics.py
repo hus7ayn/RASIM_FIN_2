@@ -18,9 +18,22 @@ def _parse_ts(value: str) -> Optional[datetime]:
         return None
 
 
+def _entry_ts(trade: Dict[str, Any]) -> str:
+    """Backtest records use `entry_timestamp_ist`; live-log records use `entry_time`.
+
+    Reading only one of them silently zeroed every duration metric and dropped live
+    trades from the monthly/weekday/daily breakdowns, so both spellings are accepted.
+    """
+    return trade.get("entry_timestamp_ist") or trade.get("entry_time") or ""
+
+
+def _exit_ts(trade: Dict[str, Any]) -> str:
+    return trade.get("exit_timestamp_ist") or trade.get("exit_time") or ""
+
+
 def _duration_minutes(trade: Dict[str, Any]) -> Optional[float]:
-    entry = _parse_ts(trade.get("entry_timestamp_ist", ""))
-    exit_ = _parse_ts(trade.get("exit_timestamp_ist", ""))
+    entry = _parse_ts(_entry_ts(trade))
+    exit_ = _parse_ts(_exit_ts(trade))
     if entry is None or exit_ is None:
         return None
     return (exit_ - entry).total_seconds() / 60.0
@@ -108,7 +121,7 @@ def overall_stats(trades: Sequence[Dict[str, Any]], initial_capital: float) -> D
 def monthly_stats(trades: Sequence[Dict[str, Any]], initial_capital: float) -> List[Dict[str, Any]]:
     grouped: Dict[str, List[Dict[str, Any]]] = {}
     for t in trades:
-        ts = _parse_ts(t.get("exit_timestamp_ist", ""))
+        ts = _parse_ts(_exit_ts(t))
         if ts is None:
             continue
         key = ts.strftime("%Y-%m")
@@ -137,7 +150,7 @@ def monthly_stats(trades: Sequence[Dict[str, Any]], initial_capital: float) -> L
 def daily_stats(trades: Sequence[Dict[str, Any]]) -> List[Dict[str, Any]]:
     grouped: Dict[str, List[float]] = {}
     for t in trades:
-        ts = _parse_ts(t.get("exit_timestamp_ist", ""))
+        ts = _parse_ts(_exit_ts(t))
         if ts is None:
             continue
         key = ts.date().isoformat()
@@ -163,7 +176,7 @@ def weekly_stats(trades: Sequence[Dict[str, Any]]) -> List[Dict[str, Any]]:
     """
     grouped: Dict[str, List[float]] = {name: [] for name in WEEKDAY_NAMES}
     for t in trades:
-        ts = _parse_ts(t.get("entry_timestamp_ist", ""))
+        ts = _parse_ts(_entry_ts(t))
         if ts is None:
             continue
         grouped[WEEKDAY_NAMES[ts.weekday()]].append(float(t["pnl_usd"]))
@@ -204,7 +217,7 @@ def strategy_insights(trades: Sequence[Dict[str, Any]]) -> Dict[str, Any]:
 
     for t in trades:
         pnl = float(t["pnl_usd"])
-        entry_ts = _parse_ts(t.get("entry_timestamp_ist", ""))
+        entry_ts = _parse_ts(_entry_ts(t))
         if entry_ts is not None:
             day_key = entry_ts.date().isoformat()
             by_day[day_key] = by_day.get(day_key, 0.0) + pnl
@@ -243,12 +256,12 @@ def build_equity_curve_from_trades(
 ) -> List[Dict[str, Any]]:
     """Per-trade cumulative equity curve — works for any backtest JSON, since not every
     output format (e.g. the data_pipeline CLI) records a full per-candle equity curve."""
-    ordered = sorted(trades, key=lambda t: t.get("exit_timestamp_ist", ""))
+    ordered = sorted(trades, key=_exit_ts)
     capital = float(initial_capital)
     rows = [{"timestamp_ist": None, "capital": capital}]
     for t in ordered:
         capital += float(t["pnl_usd"])
-        rows.append({"timestamp_ist": t.get("exit_timestamp_ist"), "capital": capital})
+        rows.append({"timestamp_ist": _exit_ts(t) or None, "capital": capital})
     return rows
 
 
