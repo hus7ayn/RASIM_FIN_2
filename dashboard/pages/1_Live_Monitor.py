@@ -11,13 +11,15 @@ if _REPO_ROOT not in sys.path:
 import pandas as pd
 import streamlit as st
 
+from dashboard import credentials
 from dashboard.live import fetch_recent_candles, get_live_snapshot
 from dashboard.position_manager import (
     amend_tp_sl,
     book_partial,
     compute_live_pnl,
-    credentials_present,
+    open_demo_trade,
     preflight_check,
+    test_connection,
 )
 from dashboard.trade_log import current_open_trade
 from dashboard.ui import demo_badge
@@ -168,7 +170,7 @@ def render_position_panel() -> None:
             "via the strategy, and the live controls will appear here."
         )
         if st.button("Refresh position", key="pos_refresh_empty"):
-            st.rerun(scope="fragment")
+            st.rerun()
         return
 
     if trade.get("synthetic"):
@@ -217,8 +219,11 @@ def render_position_panel() -> None:
             "reduce-only orders are submitted to the Binance demo futures endpoint."
         ),
     )
-    if live_writes and not credentials_present():
-        st.error("API credentials are not set — leave this off, or export the env vars and restart.")
+    if live_writes and not credentials.present():
+        st.error(
+            "No API credentials — connect a Binance testnet key in the Exchange connection "
+            "panel below, or leave this off to record changes in the log only."
+        )
         live_writes = False
 
     edit_col, book_col = st.columns(2)
@@ -249,7 +254,7 @@ def render_position_panel() -> None:
                         )
                     else:
                         st.success("Recorded in trade log (not sent to exchange).")
-                    st.rerun(scope="fragment")
+                    st.rerun()
                 except Exception as exc:  # noqa: BLE001
                     st.error(f"Could not update TP/SL: {exc}")
 
@@ -284,7 +289,7 @@ def render_position_panel() -> None:
                         f"{res['remaining_after']:.5f} still open ({res['status']})."
                         + ("" if res["exchange_applied"] else " Log only, no exchange order.")
                     )
-                    st.rerun(scope="fragment")
+                    st.rerun()
                 except Exception as exc:  # noqa: BLE001
                     st.error(f"Could not book partial: {exc}")
 
@@ -299,6 +304,115 @@ def render_position_panel() -> None:
             st.caption("TP and SL unchanged since entry.")
 
 
+# Own fragment, no auto-refresh: a refresh tick mid-entry would clear a pasted key.
+@st.fragment
+def render_connection_panel() -> None:
+    st.subheader("Exchange connection")
+
+    src = credentials.source()
+    if src:
+        key, _ = credentials.resolve()
+        st.success(f"Connected key {credentials.masked(key)} — from {src}.")
+    else:
+        st.info("No API credentials configured. The dashboard is read-only until you add one.")
+
+    st.caption(
+        "**Binance testnet keys only.** Every endpoint this app uses points at "
+        "`demo-fapi.binance.com`, so a mainnet key cannot trade here — but it would still "
+        "be sent to whatever host is serving this page. Keys are held in this browser "
+        "session only: never written to disk, never logged, and gone when the session ends. "
+        "On a hosted deployment, prefer `st.secrets` over typing them in."
+    )
+
+    with st.form("creds_form", border=False):
+        c1, c2 = st.columns(2)
+        api_key_in = c1.text_input("API key", type="password", autocomplete="off")
+        api_secret_in = c2.text_input("API secret", type="password", autocomplete="off")
+        save_col, test_col, clear_col = st.columns(3)
+        saved = save_col.form_submit_button("Use these keys")
+        tested = test_col.form_submit_button("Test connection")
+        cleared = clear_col.form_submit_button("Forget keys")
+
+        if cleared:
+            credentials.clear()
+            st.success("Keys cleared from this session.")
+
+        if saved or tested:
+            if api_key_in and api_secret_in:
+                credentials.store(api_key_in, api_secret_in)
+            if not credentials.present():
+                st.error("Enter both an API key and secret.")
+            elif tested:
+                try:
+                    info = test_connection(symbol)
+                    st.success(
+                        f"Connected to {info['endpoint']} — {info['symbol']} last "
+                        f"{info['last_price']:,.2f}, USDT balance "
+                        f"{info['usdt_total']}, {info['open_positions']} open position(s)."
+                    )
+                except Exception as exc:  # noqa: BLE001
+                    st.error(f"Connection failed: {exc}")
+            else:
+                st.success("Keys stored for this session.")
+
+    if not credentials.present():
+        return
+
+    st.markdown("**Place a demo trade**")
+    st.caption(
+        "Opens a position on the demo account, sized by the strategy's own risk model, "
+        "with reduce-only stop and target attached. It then appears in the position panel "
+        "above and in Trade History."
+    )
+    with st.form("demo_trade_form", border=False):
+        d1, d2, d3 = st.columns(3)
+        demo_side = d1.selectbox("Direction", ["BUY", "SELL"])
+        demo_capital = d2.number_input(
+            "Capital for sizing (USD)", value=float(capital), step=500.0, min_value=1.0
+        )
+        really_fill = d3.toggle(
+            "Actually fill it",
+            value=False,
+            help=(
+                "Off: the order is sent with Binance's test flag and does not fill — it "
+                "validates that the exchange would accept it. On: a real order is placed "
+                "against the demo account."
+            ),
+        )
+        if st.form_submit_button("Open demo trade"):
+            price = _last_price(symbol)
+            if price is None:
+                st.error("Could not fetch a current price — try again.")
+            else:
+                try:
+                    res = open_demo_trade(
+                        symbol=symbol,
+                        side=demo_side,
+                        capital=demo_capital,
+                        current_price=price,
+                        timestamp_ist=_now_ist_str(),
+                        validate_only=not really_fill,
+                    )
+                    for w in res["warnings"]:
+                        st.warning(w)
+                    st.success(
+                        f"Trade #{res['trade_number']} {res['side']} {res['quantity']:.5f} "
+                        f"@ {res['entry_price']:,.2f} — notional ${res['notional_usd']:,.0f} "
+                        f"({res['implied_leverage']:.1f}x), risking ${res['risk_usd']:,.2f}. "
+                        f"SL {res['stop_price']:,.2f} / TP {res['target_price']:,.2f}."
+                        + ("" if really_fill else " Validate-only: no fill.")
+                    )
+                    if res["placed_orders"]:
+                        st.caption(
+                            "Orders: "
+                            + ", ".join(f"{o['role']}={o['id']}" for o in res["placed_orders"])
+                        )
+                except Exception as exc:  # noqa: BLE001
+                    st.error(f"Could not open demo trade: {exc}")
+
+
 render_live_panel()
 st.divider()
 render_position_panel()
+st.divider()
+render_connection_panel()

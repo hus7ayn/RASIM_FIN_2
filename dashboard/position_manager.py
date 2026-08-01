@@ -20,32 +20,95 @@ from __future__ import annotations
 import os
 from typing import Any, Dict, List, Optional
 
-from binance_testnet import build_testnet_exchange
+from binance_testnet import build_testnet_exchange, execute_strategy_decision
 from dashboard.trade_log import (
+    append_open_trade,
     current_open_trade,
     record_partial_exit,
     record_tp_sl_change,
 )
-from trading_agent import LEVERAGE
+from trading_agent import (
+    LEVERAGE,
+    STOP_LOSS_USD,
+    TARGET_USD,
+    _threshold_exit_price,
+    calculate_quantity,
+    risk_budget_usd,
+)
 
 MAX_SANE_LEVERAGE = LEVERAGE  # configured ceiling; anything above is un-submittable
 
 
 def credentials_present() -> bool:
-    return bool(
-        os.getenv("BINANCE_TESTNET_API_KEY", "").strip()
-        and os.getenv("BINANCE_TESTNET_API_SECRET", "").strip()
-    )
+    """True if usable credentials exist anywhere (session, st.secrets, or environment).
+
+    Falls back to a bare environment check outside a Streamlit run, so this module stays
+    importable and testable from a plain script.
+    """
+    try:
+        from dashboard import credentials
+
+        return credentials.present()
+    except Exception:  # noqa: BLE001
+        return bool(
+            os.getenv("BINANCE_TESTNET_API_KEY", "").strip()
+            and os.getenv("BINANCE_TESTNET_API_SECRET", "").strip()
+        )
 
 
-def _exchange():
-    key = os.getenv("BINANCE_TESTNET_API_KEY", "").strip()
-    secret = os.getenv("BINANCE_TESTNET_API_SECRET", "").strip()
+def _resolve_credentials() -> tuple[str, str]:
+    try:
+        from dashboard import credentials
+
+        return credentials.resolve()
+    except Exception:  # noqa: BLE001
+        return (
+            os.getenv("BINANCE_TESTNET_API_KEY", "").strip(),
+            os.getenv("BINANCE_TESTNET_API_SECRET", "").strip(),
+        )
+
+
+def _exchange(api_key: str | None = None, api_secret: str | None = None):
+    """Build a testnet client. Explicit credentials win; otherwise they are resolved.
+
+    Every endpoint on this client points at Binance's demo futures host, so it cannot
+    reach a mainnet account regardless of which key is supplied.
+    """
+    if api_key and api_secret:
+        key, secret = api_key.strip(), api_secret.strip()
+    else:
+        key, secret = _resolve_credentials()
     if not key or not secret:
         raise RuntimeError(
-            "Set BINANCE_TESTNET_API_KEY and BINANCE_TESTNET_API_SECRET to use live position controls."
+            "No Binance testnet API credentials. Enter them in the dashboard's Exchange "
+            "connection panel, set them in st.secrets, or export "
+            "BINANCE_TESTNET_API_KEY / BINANCE_TESTNET_API_SECRET."
         )
     return build_testnet_exchange(api_key=key, api_secret=secret)
+
+
+def test_connection(symbol: str, api_key: str | None = None, api_secret: str | None = None) -> Dict[str, Any]:
+    """Read-only connectivity probe. Places no orders.
+
+    Returns account and ticker facts so the operator can confirm the key works and is
+    pointed at the demo account they expect.
+    """
+    exchange = _exchange(api_key, api_secret)
+    markets = exchange.load_markets()
+    if symbol not in markets:
+        raise ValueError(f"Symbol not available on the testnet endpoint: {symbol}")
+    ticker = exchange.fetch_ticker(symbol)
+    balance = exchange.fetch_balance()
+    usdt = balance.get("USDT") or {}
+    positions = [p for p in exchange.fetch_positions([symbol]) if float(p.get("contracts") or 0)]
+    return {
+        "symbol": symbol,
+        "last_price": ticker.get("last"),
+        "usdt_total": usdt.get("total"),
+        "usdt_free": usdt.get("free"),
+        "open_positions": len(positions),
+        "endpoint": "demo-fapi.binance.com",
+    }
 
 
 def fetch_live_position(symbol: str) -> Optional[Dict[str, Any]]:
@@ -114,6 +177,83 @@ def preflight_check(entry_price: float, quantity: float, capital: float) -> List
             "BINANCE_TESTNET_API_KEY / _SECRET are not set, so live order calls cannot be made."
         )
     return problems
+
+
+def open_demo_trade(
+    symbol: str,
+    side: str,
+    capital: float,
+    current_price: float,
+    timestamp_ist: str,
+    validate_only: bool = True,
+    api_key: str | None = None,
+    api_secret: str | None = None,
+) -> Dict[str, Any]:
+    """Open a position on the testnet with attached reduce-only stop and target.
+
+    Sized by the strategy's own risk model, so what this demonstrates is the real
+    sizing path rather than an arbitrary amount. With `validate_only=True` the order is
+    sent with Binance's test flag and never fills; set it False to place a filling order
+    against the demo account.
+
+    Refuses to run while a trade is already open in the log, since the rest of the
+    system assumes one position at a time.
+    """
+    side = side.upper()
+    if side not in ("BUY", "SELL"):
+        raise ValueError("side must be BUY or SELL.")
+    if current_matched := current_open_trade():
+        raise ValueError(
+            f"Trade #{current_matched['trade_number']} is still open — close or book it "
+            "out before opening another."
+        )
+
+    quantity = calculate_quantity(capital, current_price)
+    risk_usd = risk_budget_usd(capital)
+    reward_multiple = TARGET_USD / STOP_LOSS_USD if STOP_LOSS_USD else 1.0
+    stop_price = _threshold_exit_price(side, current_price, quantity, pnl_usd=-risk_usd)
+    target_price = _threshold_exit_price(
+        side, current_price, quantity, pnl_usd=risk_usd * reward_multiple
+    )
+
+    result: Dict[str, Any] = {
+        "symbol": symbol,
+        "side": side,
+        "quantity": quantity,
+        "entry_price": current_price,
+        "notional_usd": current_price * quantity,
+        "implied_leverage": (current_price * quantity) / capital if capital else None,
+        "risk_usd": risk_usd,
+        "stop_price": stop_price,
+        "target_price": target_price,
+        "validate_only": validate_only,
+        "placed_orders": [],
+        "warnings": preflight_check(current_price, quantity, capital),
+    }
+
+    exchange = _exchange(api_key, api_secret)
+    decision = {
+        "action": side,
+        "entry_price": current_price,
+        "quantity": quantity,
+        "timestamp_ist": timestamp_ist,
+        "stop_price": stop_price,
+        "target_price": target_price,
+    }
+    execution = execute_strategy_decision(
+        exchange=exchange, symbol=symbol, decision=decision, validate_only=validate_only
+    )
+    result["execution"] = execution
+    result["placed_orders"] = [
+        {"role": role, "id": execution.get(f"{role}_order_id")}
+        for role in ("entry", "sl", "tp")
+        if execution.get(f"{role}_order_id")
+    ]
+
+    # Record it so the position panel, trade history and analysis all see it.
+    trade_number = append_open_trade(decision, symbol=symbol)
+    result["trade_number"] = trade_number
+    return result
 
 
 def _cancel_reduce_only_orders(exchange, symbol: str) -> List[str]:

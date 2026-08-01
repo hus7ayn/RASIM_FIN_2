@@ -146,14 +146,23 @@ def execute_strategy_decision(
         params={"test": validate_only},
     )
 
-    sl_dist = _pnl_usd_to_price_distance(STOP_LOSS_USD, quantity, LEVERAGE)
-    tp_dist = _pnl_usd_to_price_distance(TARGET_USD, quantity, LEVERAGE)
-    if action == "BUY":
-        sl_price = max(0.0, entry_price - sl_dist)
-        tp_price = entry_price + tp_dist
-    else:
-        sl_price = entry_price + sl_dist
-        tp_price = max(0.0, entry_price - tp_dist)
+    # Prefer the stop/target prices the strategy already computed for this decision.
+    # They reflect the risk actually budgeted for the trade, which scales down on a small
+    # account; re-deriving from the fixed STOP_LOSS_USD here would place a stop for a
+    # different risk than the position was sized for.
+    sl_price = decision.get("stop_price")
+    tp_price = decision.get("target_price")
+    if sl_price is None or tp_price is None:
+        sl_dist = _pnl_usd_to_price_distance(STOP_LOSS_USD, quantity)
+        tp_dist = _pnl_usd_to_price_distance(TARGET_USD, quantity)
+        if action == "BUY":
+            sl_price = max(0.0, entry_price - sl_dist)
+            tp_price = entry_price + tp_dist
+        else:
+            sl_price = entry_price + sl_dist
+            tp_price = max(0.0, entry_price - tp_dist)
+    sl_price = max(0.0, float(sl_price))
+    tp_price = max(0.0, float(tp_price))
 
     sl_order = exchange.create_order(
         symbol=symbol,
