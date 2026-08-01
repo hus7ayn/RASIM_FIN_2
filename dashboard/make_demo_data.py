@@ -80,11 +80,11 @@ def _build_trades(rng: random.Random) -> List[Dict[str, Any]]:
             entry_price = _price_on(day_index, total_days, rng)
             side = "BUY" if rng.random() < 0.52 else "SELL"
 
-            # Deliberately modest edge: ~40% win rate at roughly 1:1.6 reward-to-risk,
-            # which lands the demo year near +13% rather than an implausible headline.
+            # Deliberately modest edge: ~40% win rate at roughly 1:1.65 reward-to-risk,
+            # landing the demo year near +$1,500 rather than an implausible headline.
             won = rng.random() < 0.36
             if won:
-                pnl = round(rng.uniform(130.0, 185.0), 2)
+                pnl = round(rng.uniform(130.0, 187.0), 2)
                 reason = "TARGET_HIT_INTRABAR"
             else:
                 pnl = round(-rng.uniform(85.0, 112.0), 2)
@@ -264,7 +264,8 @@ def main() -> None:
     log_rows = _build_demo_trade_log(rng)
     with open(LOG_OUT_PATH, "w", encoding="utf-8") as f:
         json.dump(log_rows, f, indent=2)
-    log_net = sum(r["pnl_usd"] for r in log_rows)
+    # The last row is deliberately left open, so its pnl_usd is None.
+    log_net = sum(r["pnl_usd"] for r in log_rows if r["pnl_usd"] is not None)
     print(f"wrote {LOG_OUT_PATH}")
     print(
         f"  demo trade-log rows={len(log_rows)} net=${log_net:+,.2f} "
