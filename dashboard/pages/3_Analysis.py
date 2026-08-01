@@ -35,9 +35,17 @@ def _backtest_files() -> list[str]:
     return sorted(glob.glob(os.path.join(DATA_DIR, "*_backtest.json")), key=os.path.getmtime, reverse=True)
 
 
+# Default to whichever source actually has data, so the page opens populated rather than
+# on an empty-state message.
+_live_rows = load_trade_log()
+_has_closed_live = any(
+    r.get("status") not in OPEN_STATUSES and r.get("pnl_usd") is not None for r in _live_rows
+)
+_options = ["Live trade log", "Backtest run"]
 source = st.radio(
     "Source",
-    ["Live trade log", "Backtest run"],
+    _options,
+    index=0 if _has_closed_live else 1,
     horizontal=True,
     help="Analyse trades recorded live, or any saved backtest run.",
 )
