@@ -106,7 +106,7 @@ def _summary(rows: List[LiveMonthRow]) -> Dict[str, Any]:
 def build_markdown(rows: List[LiveMonthRow], summary: Dict[str, Any]) -> str:
     generated = datetime.now().strftime("%Y-%m-%d %H:%M IST")
     lines = [
-        "# Live Trading Results Report — RASIM FIN Strategy",
+        "# Live Trading Results Report — Trading Strategy",
         "",
         f"**Report period:** {REPORT_PERIOD_START} to {REPORT_PERIOD_END}  ",
         f"**Generated:** {generated}  ",
@@ -240,7 +240,7 @@ def build_markdown(rows: List[LiveMonthRow], summary: Dict[str, Any]) -> str:
         "",
         "---",
         "",
-        "*Report produced by RASIM FIN automated pipeline. Strategy logic: `trading_agent.py`.*",
+        "*Report produced by the automated pipeline. Strategy logic: `trading_agent.py`.*",
         "",
     ])
     return "\n".join(lines)

@@ -1,4 +1,4 @@
-# Live Trading Results Report — RASIM FIN Strategy
+# Live Trading Results Report — Trading Strategy
 
 **Report period:** 2025-08-01 to 2026-03-31  
 **Generated:** 2026-06-08 02:53 IST  
@@ -127,4 +127,4 @@ March 2  $  10,800  ████████████████████
 
 ---
 
-*Report produced by RASIM FIN automated pipeline. Strategy logic: `trading_agent.py`.*
+*Report produced by the automated pipeline. Strategy logic: `trading_agent.py`.*

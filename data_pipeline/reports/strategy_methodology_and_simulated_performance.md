@@ -1,4 +1,4 @@
-# RASIM FIN — Strategy Methodology & Simulated Performance Report
+# Strategy Methodology & Simulated Performance Report
 
 ## Part 1 — How We Run the Strategy
 

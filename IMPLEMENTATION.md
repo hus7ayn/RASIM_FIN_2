@@ -1,4 +1,4 @@
-# RASIM_FIN_2 — Implementation Overview
+# Trading Agent — Implementation Overview
 
 This document explains how the system is currently built: the strategy implementation, the
 technology it runs on, the user interface it exposes today, and how data is stored. It reflects

@@ -29,8 +29,8 @@ def _now_ist_str() -> str:
         "%Y-%m-%d %H:%M:%S"
     )
 
-st.set_page_config(page_title="RASIM Live Monitor", layout="wide")
-st.title("RASIM Trading Strategy — Live Monitor")
+st.set_page_config(page_title="Live Monitor", layout="wide")
+st.title("Trading Strategy — Live Monitor")
 
 st.caption(
     "Reads live public market data and replays it through the selected strategy from "

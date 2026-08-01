@@ -1,4 +1,4 @@
-# RASIM FIN — System Architecture & Strategy Guide
+# System Architecture & Strategy Guide
 
 **Document version:** 1.0  
 **Generated:** 2026-06-08 12:44 IST  
@@ -8,7 +8,7 @@
 
 ## 1. Executive overview
 
-RASIM FIN is an automated **1-minute candle-close** trading system for **BTC/USDT perpetual futures**.  
+This is an automated **1-minute candle-close** trading system for **BTC/USDT perpetual futures**.  
 The admin provides key price levels; the machine evaluates three entry triggers on every candle close inside a fixed IST window and routes orders to Binance (testnet or live) with isolated margin and 13× leverage.
 
 | Layer | Module | Role |
@@ -23,7 +23,7 @@ The admin provides key price levels; the machine evaluates three entry triggers 
 
 ## 2. Architecture diagram
 
-![RASIM FIN System Architecture](rasim_fin_architecture.png)
+![System Architecture](architecture.png)
 
 ```mermaid
 flowchart TB

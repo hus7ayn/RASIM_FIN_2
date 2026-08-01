@@ -26,7 +26,7 @@ from dashboard.ui import demo_badge
 
 DATA_DIR = os.path.join(_REPO_ROOT, "data_pipeline", "data")
 
-st.set_page_config(page_title="RASIM Analysis", layout="wide")
+st.set_page_config(page_title="Analysis", layout="wide")
 st.title("Performance Analysis")
 
 

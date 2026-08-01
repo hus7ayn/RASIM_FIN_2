@@ -98,4 +98,4 @@
 }
 ```
 
-*Ledger exported from RASIM FIN execution logs.*
+*Ledger exported from execution logs.*

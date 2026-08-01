@@ -13,7 +13,7 @@ if _REPO_ROOT not in sys.path:
 from dashboard.trade_log import OPEN_STATUSES, load_trade_log
 from dashboard.ui import demo_badge
 
-st.set_page_config(page_title="RASIM Trade History", layout="wide")
+st.set_page_config(page_title="Trade History", layout="wide")
 st.title("Trade History")
 st.caption(
     "Every active and completed trade recorded by the live runner and by manual "

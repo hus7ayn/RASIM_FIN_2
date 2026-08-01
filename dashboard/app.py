@@ -28,7 +28,7 @@ from dashboard.ui import badge_hidden, demo_badge
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_DIR = os.path.join(REPO_ROOT, "data_pipeline", "data")
 
-st.set_page_config(page_title="RASIM Strategy Dashboard", layout="wide")
+st.set_page_config(page_title="Strategy Dashboard", layout="wide")
 
 
 @st.cache_data
@@ -42,7 +42,7 @@ def find_backtest_files() -> list[str]:
     return sorted(glob.glob(pattern), key=os.path.getmtime, reverse=True)
 
 
-st.title("RASIM Trading Strategy — Backtest Analytics")
+st.title("Trading Strategy — Backtest Analytics")
 
 files = find_backtest_files()
 if not files:

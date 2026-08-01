@@ -406,7 +406,7 @@ def generate_report(output_dir: Path, seed: int = 7) -> Dict[str, Any]:
     json_path = output_dir / "simulated_performance_data.json"
 
     md_content = (
-        "# RASIM FIN — Strategy Methodology & Simulated Performance Report\n\n"
+        "# Strategy Methodology & Simulated Performance Report\n\n"
         + build_methodology_section()
         + build_performance_section(path, horizons)
     )

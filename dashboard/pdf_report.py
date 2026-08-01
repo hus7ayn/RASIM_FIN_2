@@ -32,7 +32,7 @@ def _title_page(
     fig = plt.figure(figsize=(8.5, 11))
     if notice:
         _stamp_synthetic(fig, notice)
-    fig.text(0.5, 0.93, "RASIM Trading Strategy — Backtest Report", ha="center", fontsize=18, weight="bold")
+    fig.text(0.5, 0.93, "Trading Strategy — Backtest Report", ha="center", fontsize=18, weight="bold")
     fig.text(0.5, 0.89, f"Symbol: {meta.get('symbol', 'n/a')}", ha="center", fontsize=11)
     fig.text(
         0.5, 0.86,
