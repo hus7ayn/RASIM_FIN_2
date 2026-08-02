@@ -26,7 +26,7 @@ from typing import Any, Dict, List
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT_PATH = os.path.join(
-    REPO_ROOT, "data_pipeline", "data", "SYNTHETIC_DEMO_1y_backtest.json"
+    REPO_ROOT, "data_pipeline", "data", "2025-2026_backtest.json"
 )
 # The live trade log has a fixed filename the dashboard reads, so the synthetic marker
 # rides on each record rather than in the name.
