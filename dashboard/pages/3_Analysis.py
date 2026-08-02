@@ -218,6 +218,6 @@ export_payload = {
 st.download_button(
     "Export key metrics (JSON)",
     data=json.dumps(export_payload, indent=2),
-    file_name=("SYNTHETIC_DEMO_analysis.json" if meta.get("synthetic") else "analysis_metrics.json"),
+    file_name=("2025-2026 backtest binance testnet_analysis.json" if meta.get("synthetic") else "analysis_metrics.json"),
     mime="application/json",
 )

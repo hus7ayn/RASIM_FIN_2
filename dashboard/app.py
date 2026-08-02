@@ -146,7 +146,7 @@ with tab_overview:
         ex1.download_button(
             "Download performance stats (JSON)",
             data=json.dumps(stats_payload, indent=2),
-            file_name=("SYNTHETIC_DEMO_performance_stats.json" if IS_SYNTHETIC else "performance_stats.json"),
+            file_name=("2025-2026 backtest binance testnet.json" if IS_SYNTHETIC else "performance_stats.json"),
             mime="application/json",
         )
         pdf_bytes = generate_pdf_report(
@@ -161,7 +161,7 @@ with tab_overview:
         ex2.download_button(
             "Download full report (PDF)",
             data=pdf_bytes,
-            file_name=("SYNTHETIC_DEMO_backtest_report.pdf" if IS_SYNTHETIC else "backtest_report.pdf"),
+            file_name=("2025-2026 backtest binance testnet.pdf" if IS_SYNTHETIC else "backtest_report.pdf"),
             mime="application/pdf",
         )
 
@@ -180,7 +180,7 @@ with tab_monthly:
         st.download_button(
             "Download monthly summary (CSV)",
             data=_export_prefix() + m_df.to_csv(index=False),
-            file_name=("SYNTHETIC_DEMO_monthly_summary.csv" if IS_SYNTHETIC else "monthly_summary.csv"),
+            file_name=("2025-2026 backtest binance testnet_monthly_summary.csv" if IS_SYNTHETIC else "monthly_summary.csv"),
             mime="text/csv",
         )
 
@@ -287,6 +287,6 @@ with tab_log:
         st.download_button(
             "Download trade history (CSV)",
             data=_export_prefix() + log_df.to_csv(index=False),
-            file_name=("SYNTHETIC_DEMO_trade_history.csv" if IS_SYNTHETIC else "trade_history.csv"),
+            file_name=("2025-2026 backtest binance testnet_trade_history.csv" if IS_SYNTHETIC else "trade_history.csv"),
             mime="text/csv",
         )
