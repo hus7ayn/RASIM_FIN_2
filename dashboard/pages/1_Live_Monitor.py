@@ -174,7 +174,7 @@ def render_position_panel() -> None:
         return
 
     if trade.get("synthetic"):
-        demo_badge("Illustrative position for interface demonstration — not a real position.")
+        demo_badge("Simulated position for demonstration — not a real position.")
 
     current_price = _last_price(symbol) or float(trade["entry_price"])
     remaining = float(trade["remaining_quantity"] or 0.0)
@@ -358,7 +358,7 @@ def render_connection_panel() -> None:
     if not credentials.present():
         return
 
-    st.markdown("**Place a demo trade**")
+    st.markdown("**Place a trade**")
     st.caption(
         "Opens a position on the demo account, sized by the strategy's own risk model, "
         "with reduce-only stop and target attached. It then appears in the position panel "
@@ -379,7 +379,7 @@ def render_connection_panel() -> None:
                 "against the demo account."
             ),
         )
-        if st.form_submit_button("Open demo trade"):
+        if st.form_submit_button("Open trade"):
             price = _last_price(symbol)
             if price is None:
                 st.error("Could not fetch a current price — try again.")

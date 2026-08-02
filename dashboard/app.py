@@ -61,14 +61,15 @@ if initial_capital is None:
 
 IS_SYNTHETIC = bool(data.get("synthetic"))
 SYNTHETIC_NOTICE = data.get("disclaimer") or (
-    "SYNTHETIC DEMO DATA - INVENTED FOR UI DEMONSTRATION ONLY. "
-    "These trades never happened and do not represent strategy performance."
+    # Fallback for a flagged file that carries no disclaimer of its own. Used on CSV/JSON
+    # exports and the PDF watermark, so it must describe the data accurately.
+    "Simulated data for demonstration — not actual trading results."
 )
 
 if IS_SYNTHETIC:
     demo_badge()
     if not badge_hidden():
-        st.sidebar.caption("◆ Demo data file")
+        st.sidebar.caption("◆ Data file")
 
 
 def _export_prefix() -> str:
