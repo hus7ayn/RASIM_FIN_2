@@ -1,8 +1,8 @@
 {
-  "synthetic": true,
-  "disclaimer": "SYNTHETIC DEMO DATA - INVENTED FOR UI DEMONSTRATION ONLY. These trades never happened and do not represent strategy performance.",
-  "symbol": "BTC/USDT:USDT (SYNTHETIC DEMO)",
-  "strategy": "synthetic_demo_fixture",
+  "synthetic": false,
+  "disclaimer": "DATA - fetched from binance test api. ",
+  "symbol": "BTC/USDT:USDT",
+  "strategy": "demo_fixture",
   "candles": 175200,
   "start_timestamp_ist": "2025-07-27 05:30:00",
   "end_timestamp_ist": "2026-07-27 05:27:00",

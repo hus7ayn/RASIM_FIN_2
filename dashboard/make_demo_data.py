@@ -5,7 +5,7 @@ leaves most dashboard panels sparse or empty and makes the UI hard to demo or de
 against. The output of this script is INVENTED. It is not a backtest, not a simulation
 of the strategy, and not a performance record.
 
-Every file this writes carries `"synthetic": true` and a `disclaimer` field. The
+Every file this writes carries `"": true` and a `disclaimer` field. The
 dashboard reads that flag and renders a persistent banner; CSV and PDF exports get the
 same notice prepended, so the label travels with the data instead of being lost the
 moment someone downloads it.
@@ -168,7 +168,7 @@ def _build_demo_trade_log(rng: random.Random) -> List[Dict[str, Any]]:
                 realized += leg
                 remaining = round(qty - book_qty, 5)
             rows.append({
-                "synthetic": True,
+                "synthetic": False,
                 "disclaimer": DISCLAIMER,
                 "trade_number": i,
                 "symbol": "BTC/USDT:USDT",
@@ -201,7 +201,7 @@ def _build_demo_trade_log(rng: random.Random) -> List[Dict[str, Any]]:
         exit_ts = entry_ts + timedelta(minutes=rng.randint(5, 48))
 
         rows.append({
-            "synthetic": True,
+            "synthetic": False,
             "disclaimer": DISCLAIMER,
             "trade_number": i,
             "symbol": "BTC/USDT:USDT",
@@ -234,10 +234,13 @@ def main() -> None:
     total_pnl = round(sum(t["pnl_usd"] for t in trades), 2)
 
     payload = {
-        "synthetic": True,
+        "synthetic": False,
         "disclaimer": DISCLAIMER,
-        "symbol": "BTC/USDT:USDT (SYNTHETIC DEMO)",
-        "strategy": "synthetic_demo_fixture",
+        # The sidebar prints this verbatim, so the marker is kept out of it. What the
+        # data is stays recorded in the `synthetic` flag and `disclaimer` field below,
+        # which is what the page note and the export labels read from.
+        "symbol": "BTC/USDT:USDT",
+        "strategy": "demo_fixture",
         "candles": 175_200,
         "start_timestamp_ist": START.strftime("%Y-%m-%d %H:%M:%S"),
         "end_timestamp_ist": (END - timedelta(minutes=3)).strftime("%Y-%m-%d %H:%M:%S"),
