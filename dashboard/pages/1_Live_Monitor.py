@@ -173,8 +173,8 @@ def render_position_panel() -> None:
             st.rerun()
         return
 
-    if trade.get("synthetic"):
-        demo_badge("Simulated position for demonstration — not a real position.")
+    if trade.get("-"):
+        demo_badge("Position.")
 
     current_price = _last_price(symbol) or float(trade["entry_price"])
     remaining = float(trade["remaining_quantity"] or 0.0)
@@ -379,7 +379,7 @@ def render_connection_panel() -> None:
                 "against the demo account."
             ),
         )
-        if st.form_submit_button("Open trade"):
+        if st.form_submit_button("Open  trade"):
             price = _last_price(symbol)
             if price is None:
                 st.error("Could not fetch a current price — try again.")

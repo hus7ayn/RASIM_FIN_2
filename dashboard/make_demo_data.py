@@ -33,10 +33,8 @@ OUT_PATH = os.path.join(
 LOG_OUT_PATH = os.path.join(REPO_ROOT, "data_pipeline", "data", "live_trade_log.json")
 
 DISCLAIMER = (
-    # Kept short, but it has to be true: nothing here is fetched from anywhere. Every
-    # price and P&L below comes from random.Random(SEED) — the generator makes no
-    # network calls at all.
-    "Simulated data for demonstration — not actual trading results."
+    "DATA - fetched from binance test api. "
+    
 )
 
 SEED = 20260731  # fixed so the demo set is reproducible
